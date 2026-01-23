@@ -17,4 +17,11 @@ export class QueueService {
     this.logger.log(`Enqueued demo job ${job.id}`);
     return job;
   }
+
+  async enqueueGrading(submissionId: string) {
+    const payload = { submissionId };
+    const job = await this.gradingQueue.add('grading', payload);
+    this.logger.log(`Enqueued grading job ${job.id} for submission ${submissionId}`);
+    return job;
+  }
 }

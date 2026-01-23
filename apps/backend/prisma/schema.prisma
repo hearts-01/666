@@ -1,8 +1,24 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "mysql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
 
-enum Role { STUDENT TEACHER ADMIN }
-enum SubmissionStatus { QUEUED PROCESSING DONE FAILED }
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum SubmissionStatus {
+  QUEUED
+  PROCESSING
+  DONE
+  FAILED
+}
 
 model User {
   id           String   @id @default(cuid())
@@ -13,7 +29,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  teacherClasses Class[]     @relation("TeacherClasses")
+  teacherClasses Class[]      @relation("TeacherClasses")
   studentEnrolls Enrollment[]
   submissions    Submission[]
 }
@@ -25,7 +41,7 @@ model Class {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teachers  User[]   @relation("TeacherClasses")
+  teachers  User[]       @relation("TeacherClasses")
   enrolls   Enrollment[]
   homeworks Homework[]
 }
@@ -36,8 +52,8 @@ model Enrollment {
   studentId String
   createdAt DateTime @default(now())
 
-  class     Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student   User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student User  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([classId, studentId])
 }
@@ -55,22 +71,22 @@ model Homework {
 }
 
 model Submission {
-  id          String           @id @default(cuid())
-  homeworkId  String
-  studentId   String
-  status      SubmissionStatus @default(QUEUED)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id         String           @id @default(cuid())
+  homeworkId String
+  studentId  String
+  status     SubmissionStatus @default(QUEUED)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
-  images      SubmissionImage[]
-  ocrText     String?          @db.Text
+  images     SubmissionImage[]
+  ocrText    String?          @db.Text
   gradingJson Json?
-  totalScore  Float?
-  errorCode   String?
-  errorMsg    String?
+  totalScore Float?
+  errorCode  String?
+  errorMsg   String?
 
-  homework    Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
-  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student  User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([homeworkId])
   @@index([studentId])
@@ -83,5 +99,5 @@ model SubmissionImage {
   objectKey    String
   createdAt    DateTime @default(now())
 
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 }
