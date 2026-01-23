@@ -1,11 +1,13 @@
 import {
   CreateBucketCommand,
   HeadBucketCommand,
+  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'stream';
 
 @Injectable()
 export class StorageService {
@@ -57,5 +59,40 @@ export class StorageService {
         ContentType: contentType,
       }),
     );
+  }
+
+  async getObject(key: string): Promise<Buffer> {
+    await this.ensureBucket();
+    const response = await this.client.send(
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      }),
+    );
+
+    if (!response.Body) {
+      throw new Error(`Empty object body for key ${key}`);
+    }
+
+    const body = response.Body as unknown;
+
+    if (body instanceof Readable) {
+      return this.streamToBuffer(body);
+    }
+
+    if (typeof (body as { getReader?: () => unknown }).getReader === 'function') {
+      const readable = Readable.fromWeb(body as any);
+      return this.streamToBuffer(readable);
+    }
+
+    throw new Error(`Unsupported body type for key ${key}`);
+  }
+
+  private async streamToBuffer(stream: Readable): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
   }
 }

@@ -1,16 +1,40 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job, WorkerOptions } from 'bullmq';
 import { SubmissionStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
+
+type OcrResponse = {
+  text: string;
+  confidence?: number;
+};
+
+class OcrError extends Error {
+  readonly code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
 
 @Processor('grading')
 export class GradingProcessor extends WorkerHost {
   private readonly logger = new Logger(GradingProcessor.name);
   private readonly concurrency = Number(process.env.WORKER_CONCURRENCY || '5');
+  private readonly ocrServiceUrl: string;
+  private readonly ocrTimeoutMs: number;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+    configService: ConfigService,
+  ) {
     super();
+    this.ocrServiceUrl = configService.get<string>('OCR_SERVICE_URL') || 'http://localhost:8000';
+    this.ocrTimeoutMs = Number(configService.get<string>('OCR_TIMEOUT_MS') || '10000');
   }
 
   protected getWorkerOptions(): WorkerOptions {
@@ -49,7 +73,33 @@ export class GradingProcessor extends WorkerHost {
         data: { status: SubmissionStatus.PROCESSING },
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const submission = await this.prisma.submission.findUnique({
+        where: { id: submissionId },
+        include: { images: { orderBy: { createdAt: 'asc' } } },
+      });
+
+      if (!submission) {
+        throw new OcrError('SUBMISSION_NOT_FOUND', 'Submission not found');
+      }
+
+      const texts: string[] = [];
+
+      for (const image of submission.images) {
+        const imageBuffer = await this.storage.getObject(image.objectKey);
+        const base64 = imageBuffer.toString('base64');
+        const ocrResult = await this.callOcrWithRetry({
+          image_base64: base64,
+          preprocess: false,
+        });
+        if (ocrResult.text?.trim()) {
+          texts.push(ocrResult.text.trim());
+        }
+      }
+
+      const mergedText = texts.join('\n\n').trim();
+      if (!mergedText) {
+        throw new OcrError('OCR_EMPTY', 'OCR returned empty text');
+      }
 
       const mockResult = {
         totalScore: 85,
@@ -74,7 +124,7 @@ export class GradingProcessor extends WorkerHost {
         where: { id: submissionId },
         data: {
           status: SubmissionStatus.DONE,
-          ocrText: 'Mock OCR text',
+          ocrText: mergedText,
           gradingJson: mockResult,
           totalScore: mockResult.totalScore,
         },
@@ -85,12 +135,14 @@ export class GradingProcessor extends WorkerHost {
       return { durationMs: duration };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
+      const code =
+        error instanceof OcrError ? error.code : error instanceof Error ? 'OCR_ERROR' : 'UNKNOWN';
       try {
         await this.prisma.submission.update({
           where: { id: submissionId },
           data: {
             status: SubmissionStatus.FAILED,
-            errorCode: 'PROCESSING_ERROR',
+            errorCode: code,
             errorMsg: message,
           },
         });
@@ -101,6 +153,67 @@ export class GradingProcessor extends WorkerHost {
       }
       this.logger.error(`Grading job ${job.id} failed: ${message}`);
       throw error;
+    }
+  }
+
+  private async callOcrWithRetry(payload: {
+    image_base64: string;
+    preprocess?: boolean;
+  }): Promise<OcrResponse> {
+    try {
+      return await this.callOcr(payload);
+    } catch (error) {
+      if (error instanceof OcrError && error.code === 'OCR_TIMEOUT') {
+        this.logger.warn('OCR timeout, retrying once...');
+        return this.callOcr(payload);
+      }
+      throw error;
+    }
+  }
+
+  private async callOcr(payload: {
+    image_base64: string;
+    preprocess?: boolean;
+  }): Promise<OcrResponse> {
+    const response = await this.fetchWithTimeout(
+      `${this.ocrServiceUrl}/ocr`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+      this.ocrTimeoutMs,
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new OcrError('OCR_ERROR', `OCR service error: ${response.status} ${errorText}`);
+    }
+
+    const data = (await response.json()) as OcrResponse;
+    if (!data.text || !data.text.trim()) {
+      throw new OcrError('OCR_EMPTY', 'OCR returned empty text');
+    }
+
+    return data;
+  }
+
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeoutMs: number,
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new OcrError('OCR_TIMEOUT', 'OCR request timed out');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

@@ -4,6 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from '../queue/queue.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { GradingProcessor } from './grading.processor';
+import { StorageModule } from '../storage/storage.module';
 
 const buildRedisConnection = (redisUrl: string) => {
   try {
@@ -33,6 +34,7 @@ const buildRedisConnection = (redisUrl: string) => {
       }),
     }),
     PrismaModule,
+    StorageModule,
     QueueModule,
   ],
   providers: [GradingProcessor],
