@@ -1,7 +1,9 @@
 import {
   CreateBucketCommand,
-  HeadBucketCommand,
+  DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
+  HeadBucketCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -86,6 +88,74 @@ export class StorageService {
     }
 
     throw new Error(`Unsupported body type for key ${key}`);
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    await this.ensureBucket();
+    try {
+      await this.client.send(
+        new DeleteObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+        }),
+      );
+      this.logger.debug(`Deleted object ${this.bucket}/${key}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      if (message.includes('NoSuchKey') || message.includes('NotFound')) {
+        this.logger.debug(`Object already missing ${this.bucket}/${key}`);
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async deleteObjects(objectKeys: string[]): Promise<{
+    ok: number;
+    failed: { key: string; err: string }[];
+  }> {
+    await this.ensureBucket();
+    if (!objectKeys.length) {
+      return { ok: 0, failed: [] };
+    }
+
+    const failed: { key: string; err: string }[] = [];
+    let ok = 0;
+    const batchSize = 100;
+
+    for (let i = 0; i < objectKeys.length; i += batchSize) {
+      const batch = objectKeys.slice(i, i + batchSize);
+      try {
+        const response = await this.client.send(
+          new DeleteObjectsCommand({
+            Bucket: this.bucket,
+            Delete: {
+              Objects: batch.map((key) => ({ Key: key })),
+              Quiet: true,
+            },
+          }),
+        );
+
+        const errorKeys = new Set<string>();
+        (response.Errors || []).forEach((error) => {
+          const key = error.Key || 'unknown';
+          const code = error.Code || 'UnknownError';
+          if (code === 'NoSuchKey' || code === 'NotFound') {
+            return;
+          }
+          errorKeys.add(key);
+          failed.push({ key, err: `${code}: ${error.Message || 'delete failed'}` });
+        });
+
+        ok += batch.length - errorKeys.size;
+        this.logger.debug(`Deleted ${batch.length - errorKeys.size} objects in batch`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        batch.forEach((key) => failed.push({ key, err: message }));
+      }
+    }
+
+    return { ok, failed };
   }
 
   private async streamToBuffer(stream: Readable): Promise<Buffer> {

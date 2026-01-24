@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
@@ -8,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClassesModule } from './classes/classes.module';
 import { HomeworksModule } from './homeworks/homeworks.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { RetentionModule } from './retention/retention.module';
 
 const buildRedisConnection = (redisUrl: string) => {
   try {
@@ -28,6 +30,7 @@ const buildRedisConnection = (redisUrl: string) => {
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     PrismaModule,
+    ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -43,6 +46,7 @@ const buildRedisConnection = (redisUrl: string) => {
     HomeworksModule,
     SubmissionsModule,
     QueueModule,
+    RetentionModule,
   ],
 })
 export class AppModule {}
