@@ -8,56 +8,88 @@ import {
 } from '@ant-design/icons';
 import { ProLayout } from '@ant-design/pro-components';
 import type { ProLayoutProps } from '@ant-design/pro-components';
+import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-
-const routeConfig: ProLayoutProps['route'] = {
-  path: '/teacher',
-  routes: [
-    {
-      path: '/teacher/dashboard',
-      name: 'Dashboard',
-      icon: <DashboardOutlined />,
-    },
-    {
-      path: '/teacher/classes',
-      name: 'Classes',
-      icon: <ClusterOutlined />,
-    },
-    {
-      path: '/teacher/homeworks',
-      name: 'Homeworks',
-      icon: <BookOutlined />,
-    },
-    {
-      path: '/teacher/reports',
-      name: 'Reports',
-      icon: <BarChartOutlined />,
-    },
-    {
-      path: '/teacher/settings',
-      name: 'Settings',
-      icon: <SettingOutlined />,
-      routes: [
-        {
-          path: '/teacher/settings/grading',
-          name: 'Grading',
-          icon: <SlidersOutlined />,
-        },
-      ],
-    },
-  ],
-};
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 export const TeacherLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useI18n();
+
+  const routeConfig = useMemo<ProLayoutProps['route']>(
+    () => ({
+      path: '/teacher',
+      routes: [
+        {
+          path: '/teacher/dashboard',
+          name: t('nav.dashboard'),
+          icon: <DashboardOutlined />,
+        },
+        {
+          path: '/teacher/classes',
+          name: t('nav.classes'),
+          icon: <ClusterOutlined />,
+        },
+        {
+          path: '/teacher/homeworks',
+          name: t('nav.homeworks'),
+          icon: <BookOutlined />,
+        },
+        {
+          path: '/teacher/reports',
+          name: t('nav.reports'),
+          icon: <BarChartOutlined />,
+        },
+        {
+          path: '/teacher/settings',
+          name: t('nav.settings'),
+          icon: <SettingOutlined />,
+          routes: [
+            {
+              path: '/teacher/settings/grading',
+              name: t('nav.grading'),
+              icon: <SlidersOutlined />,
+            },
+          ],
+        },
+      ],
+    }),
+    [t],
+  );
 
   return (
     <ProLayout
-      title="Homework AI"
+      className="app-pro-layout"
+      title={t('app.title')}
       logo={false}
+      navTheme="light"
+      fixedHeader
+      siderWidth={252}
       route={routeConfig}
       location={{ pathname: location.pathname }}
+      token={{
+        header: {
+          colorBgHeader: '#ffffff',
+          colorHeaderTitle: '#0f172a',
+        },
+        sider: {
+          colorMenuBackground: '#ffffff',
+          colorTextMenu: '#1f2937',
+          colorTextMenuSelected: '#1d4ed8',
+        },
+      }}
+      menuProps={{
+        inlineIndent: 18,
+        style: { padding: '12px 12px 20px' },
+      }}
+      menuHeaderRender={() => (
+        <div className="app-pro-layout__brand">
+          <div className="app-pro-layout__brand-title">{t('app.title')}</div>
+          <div className="app-pro-layout__brand-subtitle">{t('app.teacherConsole')}</div>
+        </div>
+      )}
       menuItemRender={(item, dom) =>
         item.path ? (
           <span onClick={() => navigate(item.path)} style={{ cursor: 'pointer' }}>
@@ -67,7 +99,8 @@ export const TeacherLayout = () => {
           dom
         )
       }
-      contentStyle={{ padding: 24 }}
+      actionsRender={() => [<LanguageSwitcher key="lang" />]}
+      contentStyle={{ padding: '20px 24px 32px' }}
     >
       <Outlet />
     </ProLayout>

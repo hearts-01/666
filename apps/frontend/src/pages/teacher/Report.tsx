@@ -13,6 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchClasses, fetchTeacherClassReportOverview } from '../../api';
+import { useI18n } from '../../i18n';
 
 type ReportSummary = {
   avg: number;
@@ -57,6 +58,7 @@ type ClassReport = {
 };
 
 export const TeacherReportPage = () => {
+  const { t } = useI18n();
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [rangeDays, setRangeDays] = useState<number>(7);
 
@@ -91,24 +93,22 @@ export const TeacherReportPage = () => {
 
   return (
     <PageContainer
-      title="Class Reports"
+      title={t('teacher.reports.title')}
       breadcrumb={{
         items: [
-          { title: 'Teacher', path: '/teacher/dashboard' },
-          { title: 'Reports' },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.reports') },
         ],
       }}
     >
       {reportQuery.isError ? (
         <Alert
           type="error"
-          message="Failed to load report"
-          description={
-            reportQuery.error instanceof Error ? reportQuery.error.message : 'Please try again.'
-          }
+          message={t('teacher.reports.loadError')}
+          description={reportQuery.error instanceof Error ? reportQuery.error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => reportQuery.refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -118,7 +118,7 @@ export const TeacherReportPage = () => {
       <ProCard bordered style={{ marginBottom: 16 }}>
         <Space wrap>
           <Select
-            placeholder="Select class"
+            placeholder={t('teacher.reports.selectClass')}
             style={{ minWidth: 220 }}
             options={classOptions}
             loading={classesQuery.isLoading}
@@ -126,43 +126,43 @@ export const TeacherReportPage = () => {
             onChange={(value) => setSelectedClassId(value)}
           />
           <Space>
-            <Typography.Text>Range (days)</Typography.Text>
+            <Typography.Text>{t('teacher.reports.rangeDays')}</Typography.Text>
             <InputNumber min={1} max={30} value={rangeDays} onChange={(value) => setRangeDays(value || 7)} />
           </Space>
         </Space>
       </ProCard>
 
       {!selectedClassId ? (
-        <Empty description="Select a class to view reports" />
+        <Empty description={t('teacher.reports.selectClassHint')} />
       ) : reportQuery.isLoading && !report ? (
         <ProCard bordered loading />
       ) : !report ? (
-        <Empty description="No report data" />
+        <Empty description={t('teacher.reports.noData')} />
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <ProCard bordered title="Summary">
+          <ProCard bordered title={t('teacher.reports.summary')}>
             {hasSummary ? (
               <ProCard gutter={16} wrap>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title="Average Score" value={report.summary.avg} />
+                  <Statistic title={t('teacher.reports.avgScore')} value={report.summary.avg} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title="Highest Score" value={report.summary.max} />
+                  <Statistic title={t('teacher.reports.highestScore')} value={report.summary.max} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title="Lowest Score" value={report.summary.min} />
+                  <Statistic title={t('teacher.reports.lowestScore')} value={report.summary.min} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title="Submissions" value={report.summary.count} />
+                  <Statistic title={t('teacher.reports.submissions')} value={report.summary.count} />
                 </ProCard>
               </ProCard>
             ) : (
-              <Empty description="No completed submissions yet" />
+              <Empty description={t('teacher.reports.noCompleted')} />
             )}
           </ProCard>
 
           <ProCard gutter={16} wrap>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title="Score Distribution">
+            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.scoreDistribution')}>
               {/* TODO: connect chart visualization */}
               {report.distribution?.length ? (
                 <List
@@ -177,10 +177,10 @@ export const TeacherReportPage = () => {
                   )}
                 />
               ) : (
-                <Empty description="No distribution data" />
+                <Empty description={t('teacher.reports.noDistribution')} />
               )}
             </ProCard>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title="Trend">
+            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.trend')}>
               {/* TODO: connect chart visualization */}
               {report.trend?.length ? (
                 <List
@@ -189,19 +189,21 @@ export const TeacherReportPage = () => {
                     <List.Item>
                       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                         <Typography.Text>{item.date}</Typography.Text>
-                        <Typography.Text>Avg {item.avg}</Typography.Text>
+                        <Typography.Text>
+                          {t('common.avgShort')} {item.avg}
+                        </Typography.Text>
                       </Space>
                     </List.Item>
                   )}
                 />
               ) : (
-                <Empty description="No trend data" />
+                <Empty description={t('teacher.reports.noTrend')} />
               )}
             </ProCard>
           </ProCard>
 
           <ProCard gutter={16} wrap>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title="Top Students">
+            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topStudents')}>
               {report.topRank?.length ? (
                 <List
                   dataSource={report.topRank}
@@ -209,16 +211,18 @@ export const TeacherReportPage = () => {
                     <List.Item>
                       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                         <Typography.Text>{item.name}</Typography.Text>
-                        <Typography.Text>Avg {item.avgScore}</Typography.Text>
+                        <Typography.Text>
+                          {t('common.avgShort')} {item.avgScore}
+                        </Typography.Text>
                       </Space>
                     </List.Item>
                   )}
                 />
               ) : (
-                <Empty description="No ranking data" />
+                <Empty description={t('teacher.reports.noRanking')} />
               )}
             </ProCard>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title="Top Error Types">
+            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topErrorTypes')}>
               {report.errorTypes?.length ? (
                 <List
                   dataSource={report.errorTypes}
@@ -232,7 +236,7 @@ export const TeacherReportPage = () => {
                   )}
                 />
               ) : (
-                <Empty description="No error stats" />
+                <Empty description={t('teacher.reports.noErrorStats')} />
               )}
             </ProCard>
           </ProCard>

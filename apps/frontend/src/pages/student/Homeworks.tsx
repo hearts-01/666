@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudentHomeworks } from '../../api';
+import { useI18n } from '../../i18n';
 
 type HomeworkItem = {
   id: string;
@@ -14,19 +15,20 @@ type HomeworkItem = {
   class: { id: string; name: string };
 };
 
-const getStatus = (dueAt?: string | null) => {
+const getStatus = (t: (key: string) => string, dueAt?: string | null) => {
   if (!dueAt) {
-    return { key: 'nodue', label: 'No due date', color: 'default' as const };
+    return { key: 'nodue', label: t('status.noDue'), color: 'default' as const };
   }
   const dueDate = new Date(dueAt);
   if (dueDate.getTime() < Date.now()) {
-    return { key: 'overdue', label: 'Overdue', color: 'error' as const };
+    return { key: 'overdue', label: t('status.overdue'), color: 'error' as const };
   }
-  return { key: 'open', label: 'Open', color: 'success' as const };
+  return { key: 'open', label: t('status.open'), color: 'success' as const };
 };
 
 export const StudentHomeworksPage = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -38,7 +40,7 @@ export const StudentHomeworksPage = () => {
   const filteredData = useMemo(() => {
     const list = data || [];
     return list.filter((item) => {
-      const status = getStatus(item.dueAt).key;
+      const status = getStatus(t, item.dueAt).key;
       if (statusFilter !== 'all' && status !== statusFilter) {
         return false;
       }
@@ -52,29 +54,31 @@ export const StudentHomeworksPage = () => {
         item.class.name.toLowerCase().includes(needle)
       );
     });
-  }, [data, keyword, statusFilter]);
+  }, [data, keyword, statusFilter, t]);
 
   const columns: ProColumns<HomeworkItem>[] = [
     {
-      title: 'Homework',
+      title: t('common.homework'),
       dataIndex: 'title',
       render: (_, item) => (
         <Space direction="vertical" size={0}>
           <Typography.Text strong>{item.title}</Typography.Text>
-          <Typography.Text type="secondary">Class: {item.class.name}</Typography.Text>
+          <Typography.Text type="secondary">
+            {t('common.class')}: {item.class.name}
+          </Typography.Text>
         </Space>
       ),
     },
     {
-      title: 'Due',
+      title: t('common.due'),
       dataIndex: 'dueAt',
       render: (_, item) => {
-        const status = getStatus(item.dueAt);
+        const status = getStatus(t, item.dueAt);
         return (
           <Space direction="vertical" size={0}>
             <Tag color={status.color}>{status.label}</Tag>
             <Typography.Text type="secondary">
-              {item.dueAt ? new Date(item.dueAt).toLocaleString() : 'Flexible deadline'}
+              {item.dueAt ? new Date(item.dueAt).toLocaleString() : t('student.homeworks.flexibleDeadline')}
             </Typography.Text>
           </Space>
         );
@@ -82,20 +86,20 @@ export const StudentHomeworksPage = () => {
       width: 220,
     },
     {
-      title: 'Description',
+      title: t('common.description'),
       dataIndex: 'desc',
-      renderText: (value) => value || 'No description',
+      renderText: (value) => value || t('common.noDescription'),
       width: 280,
     },
     {
-      title: 'Action',
+      title: t('common.action'),
       valueType: 'option',
       render: (_, item) => [
         <Button key="view" onClick={() => navigate(`/student/homeworks/${item.id}`)}>
-          View
+          {t('common.view')}
         </Button>,
         <Button key="submit" type="primary" onClick={() => navigate(`/student/submit/${item.id}`)}>
-          Submit
+          {t('common.submit')}
         </Button>,
       ],
     },
@@ -103,22 +107,22 @@ export const StudentHomeworksPage = () => {
 
   return (
     <PageContainer
-      title="My Homeworks"
+      title={t('student.homeworks.title')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/dashboard' },
-          { title: 'Homeworks' },
+          { title: t('nav.student'), path: '/student/dashboard' },
+          { title: t('nav.homeworks') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load homeworks"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('student.homeworks.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -135,9 +139,9 @@ export const StudentHomeworksPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description="No homework available">
+              <Empty description={t('student.homeworks.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-                  Assignments will appear here once your teacher publishes them.
+                  {t('student.homeworks.emptyHint')}
                 </Typography.Paragraph>
               </Empty>
             ),
@@ -145,7 +149,7 @@ export const StudentHomeworksPage = () => {
           toolBarRender={() => [
             <Input.Search
               key="search"
-              placeholder="Search homework or class"
+              placeholder={t('student.homeworks.searchPlaceholder')}
               allowClear
               onSearch={(value) => setKeyword(value.trim())}
               style={{ width: 220 }}
@@ -156,10 +160,10 @@ export const StudentHomeworksPage = () => {
               onChange={(value) => setStatusFilter(value)}
               style={{ width: 160 }}
               options={[
-                { label: 'All statuses', value: 'all' },
-                { label: 'Open', value: 'open' },
-                { label: 'Overdue', value: 'overdue' },
-                { label: 'No due date', value: 'nodue' },
+                { label: t('common.allStatuses'), value: 'all' },
+                { label: t('status.open'), value: 'open' },
+                { label: t('status.overdue'), value: 'overdue' },
+                { label: t('status.noDue'), value: 'nodue' },
               ]}
             />,
           ]}

@@ -4,6 +4,7 @@ import { Alert, Button, Empty, Input, Select, Space, Tag, Typography } from 'ant
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '../../i18n';
 
 type SubmissionRow = {
   id: string;
@@ -13,17 +14,21 @@ type SubmissionRow = {
   updatedAt?: string;
 };
 
-const statusMeta: Record<SubmissionRow['status'], { label: string; color: string }> = {
-  QUEUED: { label: 'Queued', color: 'default' },
-  PROCESSING: { label: 'Processing', color: 'processing' },
-  DONE: { label: 'Done', color: 'success' },
-  FAILED: { label: 'Failed', color: 'error' },
-};
-
 export const StudentSubmissionsPage = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const statusMeta = useMemo(
+    () => ({
+      QUEUED: { label: t('status.queued'), color: 'default' },
+      PROCESSING: { label: t('status.processing'), color: 'processing' },
+      DONE: { label: t('status.done'), color: 'success' },
+      FAILED: { label: t('status.failed'), color: 'error' },
+    }),
+    [t],
+  );
 
   const { data, isLoading, isError, error, refetch } = useQuery<SubmissionRow[]>({
     queryKey: ['student-submissions'],
@@ -46,12 +51,12 @@ export const StudentSubmissionsPage = () => {
 
   const columns: ProColumns<SubmissionRow>[] = [
     {
-      title: 'Homework',
+      title: t('common.homework'),
       dataIndex: 'homeworkTitle',
       render: (value) => <Typography.Text strong>{value}</Typography.Text>,
     },
     {
-      title: 'Status',
+      title: t('common.status'),
       dataIndex: 'status',
       render: (_, item) => {
         const meta = statusMeta[item.status];
@@ -60,23 +65,23 @@ export const StudentSubmissionsPage = () => {
       width: 140,
     },
     {
-      title: 'Score',
+      title: t('common.score'),
       dataIndex: 'totalScore',
       renderText: (value) => (typeof value === 'number' ? value : '--'),
       width: 120,
     },
     {
-      title: 'Last Updated',
+      title: t('common.lastUpdated'),
       dataIndex: 'updatedAt',
       renderText: (value) => value || '--',
       width: 200,
     },
     {
-      title: 'Action',
+      title: t('common.action'),
       valueType: 'option',
       render: (_, item) => [
         <Button key="view" onClick={() => navigate(`/student/submission/${item.id}`)}>
-          View
+          {t('common.view')}
         </Button>,
       ],
     },
@@ -84,22 +89,22 @@ export const StudentSubmissionsPage = () => {
 
   return (
     <PageContainer
-      title="Submissions"
+      title={t('nav.submissions')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/dashboard' },
-          { title: 'Submissions' },
+          { title: t('nav.student'), path: '/student/dashboard' },
+          { title: t('nav.submissions') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load submissions"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('student.submissions.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -116,9 +121,9 @@ export const StudentSubmissionsPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description="No submissions yet">
+              <Empty description={t('student.submissions.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-                  Your submission history will appear here after you upload homework.
+                  {t('student.submissions.emptyHint')}
                 </Typography.Paragraph>
               </Empty>
             ),
@@ -126,7 +131,7 @@ export const StudentSubmissionsPage = () => {
           toolBarRender={() => [
             <Input.Search
               key="search"
-              placeholder="Search by homework"
+              placeholder={t('student.submissions.searchPlaceholder')}
               allowClear
               onSearch={(value) => setKeyword(value.trim())}
               style={{ width: 220 }}
@@ -137,11 +142,11 @@ export const StudentSubmissionsPage = () => {
               onChange={(value) => setStatusFilter(value)}
               style={{ width: 160 }}
               options={[
-                { label: 'All statuses', value: 'all' },
-                { label: 'Queued', value: 'QUEUED' },
-                { label: 'Processing', value: 'PROCESSING' },
-                { label: 'Done', value: 'DONE' },
-                { label: 'Failed', value: 'FAILED' },
+                { label: t('common.allStatuses'), value: 'all' },
+                { label: t('status.queued'), value: 'QUEUED' },
+                { label: t('status.processing'), value: 'PROCESSING' },
+                { label: t('status.done'), value: 'DONE' },
+                { label: t('status.failed'), value: 'FAILED' },
               ]}
             />,
           ]}

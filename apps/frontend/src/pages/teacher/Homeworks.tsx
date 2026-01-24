@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createHomework, fetchClasses, fetchHomeworksByClass } from '../../api';
+import { useI18n } from '../../i18n';
 
 type HomeworkItem = {
   id: string;
@@ -30,6 +31,7 @@ export const TeacherHomeworksPage = () => {
   const queryClient = useQueryClient();
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const classesQuery = useQuery({
     queryKey: ['classes'],
@@ -63,28 +65,28 @@ export const TeacherHomeworksPage = () => {
       if (selectedClassId) {
         await queryClient.invalidateQueries({ queryKey: ['homeworks', selectedClassId] });
       }
-      message.success('Homework created');
+      message.success(t('teacher.homeworks.created'));
     },
-    onError: () => message.error('Failed to create homework'),
+    onError: () => message.error(t('teacher.homeworks.createFailed')),
   });
 
   const columns: ProColumns<HomeworkItem>[] = [
     {
-      title: 'Title',
+      title: t('common.title'),
       dataIndex: 'title',
     },
     {
-      title: 'Description',
+      title: t('common.description'),
       dataIndex: 'desc',
       renderText: (value) => value || '--',
     },
     {
-      title: 'Due',
+      title: t('common.due'),
       dataIndex: 'dueAt',
-      renderText: (value) => (value ? new Date(value).toLocaleString() : 'No due date'),
+      renderText: (value) => (value ? new Date(value).toLocaleString() : t('status.noDue')),
     },
     {
-      title: 'Action',
+      title: t('common.action'),
       valueType: 'option',
       render: (_, item) => [
         <Button
@@ -95,7 +97,7 @@ export const TeacherHomeworksPage = () => {
             })
           }
         >
-          View
+          {t('common.view')}
         </Button>,
       ],
     },
@@ -105,26 +107,26 @@ export const TeacherHomeworksPage = () => {
 
   return (
     <PageContainer
-      title="Homeworks"
+      title={t('nav.homeworks')}
       breadcrumb={{
         items: [
-          { title: 'Teacher', path: '/teacher/dashboard' },
-          { title: 'Homeworks' },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.homeworks') },
         ],
       }}
     >
       {classesQuery.isError ? (
         <Alert
           type="error"
-          message="Failed to load classes"
+          message={t('teacher.homeworks.loadClassesError')}
           description={
             classesQuery.error instanceof Error
               ? classesQuery.error.message
-              : 'Please try again.'
+              : t('common.tryAgain')
           }
           action={
             <Button size="small" onClick={() => classesQuery.refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -133,15 +135,15 @@ export const TeacherHomeworksPage = () => {
       {homeworksQuery.isError ? (
         <Alert
           type="error"
-          message="Failed to load homeworks"
+          message={t('teacher.homeworks.loadHomeworksError')}
           description={
             homeworksQuery.error instanceof Error
               ? homeworksQuery.error.message
-              : 'Please try again.'
+              : t('common.tryAgain')
           }
           action={
             <Button size="small" onClick={() => homeworksQuery.refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -150,9 +152,9 @@ export const TeacherHomeworksPage = () => {
       {classesQuery.isLoading && !classesQuery.data ? (
         <Skeleton active paragraph={{ rows: 4 }} />
       ) : noClasses ? (
-        <Empty description="No classes yet">
+        <Empty description={t('teacher.homeworks.noClasses')}>
           <Button type="primary" onClick={() => navigate('/teacher/classes')}>
-            Create a class
+            {t('teacher.homeworks.createClass')}
           </Button>
         </Empty>
       ) : (
@@ -160,18 +162,18 @@ export const TeacherHomeworksPage = () => {
           <Space style={{ marginBottom: 16 }} wrap>
             <Select
               style={{ minWidth: 220 }}
-              placeholder="Select class"
+              placeholder={t('teacher.homeworks.selectClass')}
               options={classOptions}
               loading={classesQuery.isLoading}
               value={selectedClassId || undefined}
               onChange={(value) => setSelectedClassId(value)}
             />
             <ModalForm
-              title="Create Homework"
-              trigger={<Button type="primary">Create Homework</Button>}
+              title={t('teacher.homeworks.createHomework')}
+              trigger={<Button type="primary">{t('teacher.homeworks.createHomework')}</Button>}
               onFinish={async (values) => {
                 if (!selectedClassId) {
-                  message.warning('Select a class first');
+                  message.warning(t('teacher.homeworks.selectClassFirst'));
                   return false;
                 }
                 const dueAtValue = values.dueAt as { toISOString?: () => string } | undefined;
@@ -188,17 +190,17 @@ export const TeacherHomeworksPage = () => {
             >
               <ProFormText
                 name="title"
-                label="Homework Title"
-                placeholder="Essay Practice"
-                rules={[{ required: true, message: 'Please input title' }]}
+                label={t('teacher.homeworks.homeworkTitle')}
+                placeholder={t('teacher.homeworks.homeworkTitlePlaceholder')}
+                rules={[{ required: true, message: t('teacher.homeworks.homeworkTitleRequired') }]}
               />
               <ProFormTextArea
                 name="desc"
-                label="Description"
+                label={t('common.description')}
                 fieldProps={{ rows: 3 }}
-                placeholder="Write a 300-word essay"
+                placeholder={t('teacher.homeworks.descriptionPlaceholder')}
               />
-              <ProFormDateTimePicker name="dueAt" label="Due At" />
+              <ProFormDateTimePicker name="dueAt" label={t('common.dueAt')} />
             </ModalForm>
           </Space>
           {homeworksQuery.isLoading && !homeworksQuery.data ? (
@@ -212,7 +214,7 @@ export const TeacherHomeworksPage = () => {
               search={false}
               pagination={false}
               options={false}
-              locale={{ emptyText: <Empty description="No homeworks yet" /> }}
+              locale={{ emptyText: <Empty description={t('teacher.homeworks.empty')} /> }}
             />
           )}
         </ProCard>

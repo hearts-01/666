@@ -2,19 +2,43 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
+import zhCN from 'antd/locale/zh_CN';
 import { RouterProvider } from 'react-router-dom';
+import { I18nProvider, useI18n } from './i18n';
 import { router } from './routes/router';
 import 'antd/dist/reset.css';
 import './styles.css';
 
 const queryClient = new QueryClient();
+const themeToken = {
+  colorPrimary: '#1d4ed8',
+  colorInfo: '#1d4ed8',
+  colorBgLayout: '#f4f6fb',
+  colorBgContainer: '#ffffff',
+  colorTextHeading: '#0f172a',
+  colorText: '#1f2937',
+  borderRadius: 12,
+  fontFamily: '"IBM Plex Sans", "Segoe UI", sans-serif',
+};
+
+const App = () => {
+  const { language } = useI18n();
+  const locale = language === 'zh-CN' ? zhCN : enUS;
+
+  return (
+    <ConfigProvider theme={{ token: themeToken }} locale={locale}>
+      <RouterProvider router={router} />
+    </ConfigProvider>
+  );
+};
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={{ token: { colorPrimary: '#1677ff' } }}>
-        <RouterProvider router={router} />
-      </ConfigProvider>
+      <I18nProvider>
+        <App />
+      </I18nProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 );

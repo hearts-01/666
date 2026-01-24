@@ -4,6 +4,7 @@ import { Alert, Button, Empty, Skeleton, Space, Tag, message } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createClass, fetchClasses } from '../../api';
+import { useI18n } from '../../i18n';
 
 type ClassItem = {
   id: string;
@@ -14,6 +15,7 @@ type ClassItem = {
 export const TeacherClassesPage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const {
     data,
@@ -30,28 +32,28 @@ export const TeacherClassesPage = () => {
     mutationFn: createClass,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['classes'] });
-      message.success('Class created');
+      message.success(t('teacher.classes.created'));
     },
-    onError: () => message.error('Failed to create class'),
+    onError: () => message.error(t('teacher.classes.createFailed')),
   });
 
   const columns: ProColumns<ClassItem>[] = [
     {
-      title: 'Class',
+      title: t('teacher.classes.class'),
       dataIndex: 'name',
       width: '50%',
     },
     {
-      title: 'Grade',
+      title: t('teacher.classes.grade'),
       dataIndex: 'grade',
-      render: (_, item) => (item.grade ? <Tag>{item.grade}</Tag> : <Tag>Unassigned</Tag>),
+      render: (_, item) => (item.grade ? <Tag>{item.grade}</Tag> : <Tag>{t('teacher.classes.unassigned')}</Tag>),
     },
     {
-      title: 'Action',
+      title: t('common.action'),
       valueType: 'option',
       render: (_, item) => [
         <Button key="detail" onClick={() => navigate(`/teacher/classes/${item.id}`)}>
-          View
+          {t('common.view')}
         </Button>,
       ],
     },
@@ -59,22 +61,22 @@ export const TeacherClassesPage = () => {
 
   return (
     <PageContainer
-      title="Classes"
+      title={t('nav.classes')}
       breadcrumb={{
         items: [
-          { title: 'Teacher', path: '/teacher/dashboard' },
-          { title: 'Classes' },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.classes') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load classes"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('teacher.classes.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -92,12 +94,12 @@ export const TeacherClassesPage = () => {
             search={false}
             pagination={false}
             options={false}
-            locale={{ emptyText: <Empty description="No classes yet" /> }}
+            locale={{ emptyText: <Empty description={t('teacher.classes.empty')} /> }}
             toolBarRender={() => [
               <Space key="toolbar">
                 <ModalForm
-                  title="Create Class"
-                  trigger={<Button type="primary">Create Class</Button>}
+                  title={t('teacher.classes.create')}
+                  trigger={<Button type="primary">{t('teacher.classes.create')}</Button>}
                   onFinish={async (values) => {
                     await createMutation.mutateAsync(values as { name: string; grade?: string });
                     return true;
@@ -109,11 +111,15 @@ export const TeacherClassesPage = () => {
                 >
                   <ProFormText
                     name="name"
-                    label="Class Name"
-                    placeholder="Class 1A"
-                    rules={[{ required: true, message: 'Please input class name' }]}
+                    label={t('teacher.classes.className')}
+                    placeholder={t('teacher.classes.classNamePlaceholder')}
+                    rules={[{ required: true, message: t('teacher.classes.classNameRequired') }]}
                   />
-                  <ProFormText name="grade" label="Grade" placeholder="Grade 7" />
+                  <ProFormText
+                    name="grade"
+                    label={t('teacher.classes.grade')}
+                    placeholder={t('teacher.classes.gradePlaceholder')}
+                  />
                 </ModalForm>
               </Space>,
             ]}

@@ -1,14 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap');
+
 :root {
+  --app-bg: #f4f6fb;
+  --app-surface: #ffffff;
+  --app-border: rgba(15, 23, 42, 0.08);
+  --app-primary: #1d4ed8;
+  --app-heading-font: "IBM Plex Serif", "Times New Roman", serif;
+  --app-shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.08);
+  --app-shadow-header: 0 6px 20px rgba(15, 23, 42, 0.08);
   color: #0f172a;
-  background-color: #f6f8fa;
-  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background-color: var(--app-bg);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   padding: 0;
+  background:
+    radial-gradient(circle at top left, rgba(29, 78, 216, 0.08), transparent 45%),
+    radial-gradient(circle at top right, rgba(14, 116, 144, 0.07), transparent 55%),
+    var(--app-bg);
+  color: #0f172a;
 }
 
 #root {
   min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.ant-typography-title,
+.ant-page-header-heading-title {
+  font-family: var(--app-heading-font);
+  letter-spacing: -0.01em;
+}
+
+.ant-layout,
+.ant-pro-layout {
+  background: transparent;
+}
+
+.ant-pro-layout .ant-layout-header {
+  background: var(--app-surface);
+  border-bottom: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-header);
+}
+
+.ant-pro-layout .ant-pro-sider,
+.ant-pro-layout .ant-layout-sider {
+  background: var(--app-surface);
+  border-right: 1px solid var(--app-border);
+}
+
+.ant-pro-layout .ant-menu-light,
+.ant-layout-header .ant-menu {
+  background: transparent;
+}
+
+.ant-pro-layout .ant-menu-light .ant-menu-item-selected,
+.ant-layout-header .ant-menu .ant-menu-item-selected {
+  background: rgba(29, 78, 216, 0.12);
+}
+
+.ant-pro-layout .ant-pro-layout-content {
+  background: transparent;
+}
+
+.ant-pro-card,
+.ant-card {
+  border-radius: 16px;
+}
+
+.ant-pro-card-border,
+.ant-card-bordered {
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-soft);
+}
+
+.ant-page-header {
+  padding-inline: 0;
+}
+
+.app-pro-layout .ant-pro-layout-header,
+.app-pro-layout .ant-layout-header {
+  padding-inline: 24px;
+  height: 60px;
+  line-height: 60px;
+}
+
+.app-pro-layout__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 16px 12px;
+}
+
+.app-pro-layout__brand-title {
+  font-family: var(--app-heading-font);
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.app-pro-layout__brand-subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #64748b;
+}
+
+.app-pro-layout .ant-menu-title-content {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.app-pro-layout .ant-menu-light .ant-menu-item,
+.app-pro-layout .ant-menu-light .ant-menu-submenu-title {
+  height: 44px;
+  line-height: 44px;
+  margin: 4px 12px;
+  border-radius: 10px;
+}
+
+.app-pro-layout .ant-menu-light .ant-menu-sub .ant-menu-item {
+  margin-left: 24px;
+}
+
+.app-pro-layout .ant-menu-light .ant-menu-item-selected {
+  background: rgba(29, 78, 216, 0.14);
+}
+
+.app-pro-layout .ant-menu-light .ant-menu-item:hover,
+.app-pro-layout .ant-menu-light .ant-menu-submenu-title:hover {
+  background: rgba(29, 78, 216, 0.08);
 }

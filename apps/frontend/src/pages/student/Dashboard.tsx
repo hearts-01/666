@@ -2,33 +2,38 @@ import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Alert, Button, Empty, Statistic, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchStudentHomeworks } from '../../api';
+import { useI18n } from '../../i18n';
 
 export const StudentDashboardPage = () => {
+  const { t } = useI18n();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['student-homeworks'],
     queryFn: fetchStudentHomeworks,
   });
 
   const homeworkCount = data?.length ?? 0;
+  const upcomingDeadlineText = homeworkCount
+    ? t('student.dashboard.reviewDeadlines')
+    : t('student.dashboard.noUpcomingDeadlines');
 
   return (
     <PageContainer
-      title="Dashboard"
+      title={t('nav.dashboard')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/dashboard' },
-          { title: 'Dashboard' },
+          { title: t('nav.student'), path: '/student/dashboard' },
+          { title: t('nav.dashboard') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load dashboard data"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('student.dashboard.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -36,29 +41,27 @@ export const StudentDashboardPage = () => {
       ) : null}
       <ProCard gutter={16} wrap>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Statistic title="Assignments Available" value={homeworkCount} />
-          <Typography.Text type="secondary">
-            Updated from your latest homework list.
-          </Typography.Text>
+          <Statistic title={t('student.dashboard.assignmentsAvailable')} value={homeworkCount} />
+          <Typography.Text type="secondary">{t('student.dashboard.updatedFromList')}</Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Weekly Submissions</Typography.Text>
+          <Typography.Text type="secondary">{t('student.dashboard.weeklySubmissions')}</Typography.Text>
           {/* TODO: connect submissions summary API */}
-          <Empty description="No submission summary yet" />
+          <Empty description={t('student.dashboard.noSubmissionSummary')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Average Score Trend</Typography.Text>
+          <Typography.Text type="secondary">{t('student.dashboard.avgScoreTrend')}</Typography.Text>
           {/* TODO: connect scoring trend API */}
-          <Empty description="Score trend will appear here" />
+          <Empty description={t('student.dashboard.scoreTrendPlaceholder')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Top Error Types</Typography.Text>
+          <Typography.Text type="secondary">{t('student.dashboard.topErrorTypes')}</Typography.Text>
           {/* TODO: connect top error analytics */}
-          <Empty description="No error insights yet" />
+          <Empty description={t('student.dashboard.noErrorInsights')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Upcoming Deadlines</Typography.Text>
-          <Empty description={homeworkCount ? 'Review deadlines in Homeworks' : 'No upcoming deadlines'} />
+          <Typography.Text type="secondary">{t('student.dashboard.upcomingDeadlines')}</Typography.Text>
+          <Empty description={upcomingDeadlineText} />
         </ProCard>
       </ProCard>
     </PageContainer>

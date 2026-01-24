@@ -23,12 +23,17 @@ import { TeacherHomeworkDetailPage } from '../pages/teacher/HomeworkDetail';
 import { TeacherHomeworksPage } from '../pages/teacher/Homeworks';
 import { TeacherReportPage } from '../pages/teacher/Report';
 import { TeacherSettingsGradingPage } from '../pages/teacher/SettingsGrading';
+import { useI18n } from '../i18n';
 
-const NotFoundPage = () => (
-  <PageContainer title="Page Not Found" breadcrumb={{ items: [] }}>
-    <Result status="404" title="404" subTitle="The page you visited does not exist." />
-  </PageContainer>
-);
+const NotFoundPage = () => {
+  const { t } = useI18n();
+
+  return (
+    <PageContainer title={t('errors.pageNotFoundTitle')} breadcrumb={{ items: [] }}>
+      <Result status="404" title="404" subTitle={t('errors.pageNotFoundSubtitle')} />
+    </PageContainer>
+  );
+};
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/login" replace /> },

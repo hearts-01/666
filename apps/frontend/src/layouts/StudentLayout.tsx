@@ -2,6 +2,8 @@ import { Layout, Menu, Typography, theme } from 'antd';
 import type { MenuProps } from 'antd';
 import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 const { Header, Content } = Layout;
 
@@ -9,6 +11,7 @@ export const StudentLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { token } = theme.useToken();
+  const { t } = useI18n();
 
   const selectedKey = useMemo(() => {
     const path = location.pathname;
@@ -29,28 +32,30 @@ export const StudentLayout = () => {
 
   const items = useMemo<MenuProps['items']>(
     () => [
-      { key: '/student/dashboard', label: 'Dashboard' },
-      { key: '/student/homeworks', label: 'Homeworks' },
-      { key: '/student/submissions', label: 'Submissions' },
-      { key: '/student/report', label: 'Report' },
+      { key: '/student/dashboard', label: t('nav.dashboard') },
+      { key: '/student/homeworks', label: t('nav.homeworks') },
+      { key: '/student/submissions', label: t('nav.submissions') },
+      { key: '/student/report', label: t('nav.report') },
     ],
-    [],
+    [t],
   );
 
   return (
-    <Layout style={{ minHeight: '100vh', background: token.colorBgLayout }}>
+    <Layout className="app-student-layout" style={{ minHeight: '100vh', background: token.colorBgLayout }}>
       <Header
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 20,
-          padding: '0 24px',
+          padding: '0 28px',
+          height: 60,
           background: token.colorBgElevated,
           borderBottom: `1px solid ${token.colorSplit}`,
+          boxShadow: token.boxShadowSecondary,
         }}
       >
         <Typography.Title level={4} style={{ color: token.colorTextHeading, margin: 0 }}>
-          Homework AI
+          {t('app.title')}
         </Typography.Title>
         <Menu
           theme="light"
@@ -58,7 +63,17 @@ export const StudentLayout = () => {
           selectedKeys={[selectedKey]}
           items={items}
           onClick={(info) => navigate(info.key)}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            background: 'transparent',
+            borderBottom: 'none',
+            fontWeight: 500,
+            height: 60,
+            lineHeight: '60px',
+          }}
         />
+        <LanguageSwitcher />
       </Header>
       <Content>
         <div

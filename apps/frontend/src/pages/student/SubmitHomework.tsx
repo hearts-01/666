@@ -11,26 +11,27 @@ import {
   message,
 } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createSubmission } from '../../api';
-
-const tips = [
-  'Upload 1-3 clear images of your handwritten essay.',
-  'Avoid shadows and crop margins for best OCR results.',
-  'Make sure your handwriting is legible and aligned.',
-];
+import { useI18n } from '../../i18n';
 
 export const SubmitHomeworkPage = () => {
+  const { t } = useI18n();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
   const navigate = useNavigate();
   const { homeworkId } = useParams();
 
+  const tips = useMemo(
+    () => [t('submit.tip1'), t('submit.tip2'), t('submit.tip3')],
+    [t],
+  );
+
   const handleSubmit = async () => {
     if (!homeworkId) {
-      message.error('Missing homework id');
+      message.error(t('submit.missingId'));
       return;
     }
 
@@ -39,12 +40,12 @@ export const SubmitHomeworkPage = () => {
       .filter((file): file is RcFile => !!file);
 
     if (!files.length) {
-      message.warning('Please upload at least one image');
+      message.warning(t('submit.uploadAtLeastOne'));
       return;
     }
 
     if (files.length > 3) {
-      message.warning('You can upload up to 3 images');
+      message.warning(t('submit.uploadLimit'));
       return;
     }
 
@@ -53,10 +54,10 @@ export const SubmitHomeworkPage = () => {
     try {
       const result = await createSubmission({ homeworkId, files });
       setUploadPercent(100);
-      message.success('Submission created');
+      message.success(t('submit.created'));
       navigate(`/student/submission/${result.submissionId}`);
     } catch (error) {
-      message.error('Failed to submit, please try again');
+      message.error(t('submit.failed'));
       setUploadPercent(0);
     } finally {
       setSubmitting(false);
@@ -65,27 +66,29 @@ export const SubmitHomeworkPage = () => {
 
   return (
     <PageContainer
-      title="Submit Homework"
+      title={t('submit.title')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/homeworks' },
-          { title: 'Submit' },
+          { title: t('nav.student'), path: '/student/homeworks' },
+          { title: t('submit.breadcrumb') },
         ],
       }}
     >
       {!homeworkId ? (
         <Alert
           type="error"
-          message="Missing homework reference"
-          description="Please return to the homework list and choose an assignment."
+          message={t('submit.missingReference')}
+          description={t('submit.missingReferenceDesc')}
           action={
-            <Button onClick={() => navigate('/student/homeworks')}>Back to homeworks</Button>
+            <Button onClick={() => navigate('/student/homeworks')}>
+              {t('common.backToHomeworks')}
+            </Button>
           }
           style={{ marginBottom: 16 }}
         />
       ) : null}
       <ProCard gutter={16} wrap>
-        <ProCard bordered title="Upload Your Work" colSpan={{ xs: 24, lg: 16 }}>
+        <ProCard bordered title={t('submit.uploadTitle')} colSpan={{ xs: 24, lg: 16 }}>
           <Upload.Dragger
             multiple
             beforeUpload={() => false}
@@ -94,7 +97,7 @@ export const SubmitHomeworkPage = () => {
             disabled={submitting}
             onChange={({ fileList: newList }) => {
               if (newList.length > 3) {
-                message.warning('Only 3 images allowed');
+                message.warning(t('submit.onlyThree'));
               }
               setFileList(newList.slice(0, 3));
             }}
@@ -103,17 +106,15 @@ export const SubmitHomeworkPage = () => {
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
-            <p className="ant-upload-text">Drag & drop images or click to upload</p>
-            <Typography.Text type="secondary">
-              JPG/PNG, upload 1 to 3 images. Clear handwriting improves OCR accuracy.
-            </Typography.Text>
+            <p className="ant-upload-text">{t('submit.draggerText')}</p>
+            <Typography.Text type="secondary">{t('submit.draggerHint')}</Typography.Text>
           </Upload.Dragger>
           <Space style={{ marginTop: 16 }}>
             <Button type="primary" onClick={handleSubmit} loading={submitting} disabled={submitting}>
-              Submit
+              {t('common.submit')}
             </Button>
             <Button onClick={() => setFileList([])} disabled={submitting}>
-              Reset
+              {t('common.reset')}
             </Button>
           </Space>
           {submitting ? (
@@ -125,7 +126,7 @@ export const SubmitHomeworkPage = () => {
             />
           ) : null}
         </ProCard>
-        <ProCard bordered title="Submission Tips" colSpan={{ xs: 24, lg: 8 }}>
+        <ProCard bordered title={t('submit.tipsTitle')} colSpan={{ xs: 24, lg: 8 }}>
           <List
             dataSource={tips}
             renderItem={(item) => (

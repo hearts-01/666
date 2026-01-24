@@ -1,34 +1,37 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Descriptions, Empty, Tag, Typography } from 'antd';
+import { useI18n } from '../../i18n';
 
 export const AdminSystemBudgetPage = () => {
+  const { t } = useI18n();
+
   return (
     <PageContainer
-      title="System Budget"
+      title={t('admin.systemBudget.title')}
       breadcrumb={{
         items: [
-          { title: 'Admin', path: '/admin/dashboard' },
-          { title: 'System' },
-          { title: 'Budget' },
+          { title: t('nav.admin'), path: '/admin/dashboard' },
+          { title: t('nav.system') },
+          { title: t('nav.budget') },
         ],
       }}
     >
       <ProCard bordered>
         <Descriptions column={1} bordered>
-          <Descriptions.Item label="Budget Mode">
-            <Tag>Not configured</Tag>
+          <Descriptions.Item label={t('admin.systemBudget.budgetMode')}>
+            <Tag>{t('common.notConfigured')}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Daily Call Limit">
+          <Descriptions.Item label={t('admin.systemBudget.dailyCallLimit')}>
             <Typography.Text type="secondary">--</Typography.Text>
           </Descriptions.Item>
-          <Descriptions.Item label="Token Limit">
+          <Descriptions.Item label={t('admin.systemBudget.tokenLimit')}>
             <Typography.Text type="secondary">--</Typography.Text>
           </Descriptions.Item>
         </Descriptions>
       </ProCard>
-      <ProCard bordered title="Usage Trends" style={{ marginTop: 16 }}>
+      <ProCard bordered title={t('admin.systemBudget.usageTrends')} style={{ marginTop: 16 }}>
         {/* TODO: connect budget analytics API */}
-        <Empty description="Budget analytics will appear here" />
+        <Empty description={t('admin.systemBudget.empty')} />
       </ProCard>
     </PageContainer>
   );

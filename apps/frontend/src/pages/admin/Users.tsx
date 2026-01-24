@@ -3,6 +3,7 @@ import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
 import { Alert, Button, Empty, Input, Select, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { useI18n } from '../../i18n';
 
 type UserRow = {
   id: string;
@@ -11,15 +12,19 @@ type UserRow = {
   role: 'STUDENT' | 'TEACHER' | 'ADMIN';
 };
 
-const roleMeta: Record<UserRow['role'], { label: string; color: string }> = {
-  STUDENT: { label: 'Student', color: 'blue' },
-  TEACHER: { label: 'Teacher', color: 'green' },
-  ADMIN: { label: 'Admin', color: 'purple' },
-};
-
 export const AdminUsersPage = () => {
+  const { t } = useI18n();
   const [keyword, setKeyword] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+
+  const roleMeta = useMemo(
+    () => ({
+      STUDENT: { label: t('role.student'), color: 'blue' },
+      TEACHER: { label: t('role.teacher'), color: 'green' },
+      ADMIN: { label: t('role.admin'), color: 'gold' },
+    }),
+    [t],
+  );
 
   const { data, isLoading, isError, error, refetch } = useQuery<UserRow[]>({
     queryKey: ['admin-users'],
@@ -43,16 +48,16 @@ export const AdminUsersPage = () => {
 
   const columns: ProColumns<UserRow>[] = [
     {
-      title: 'Name',
+      title: t('admin.users.name'),
       dataIndex: 'name',
       render: (value) => <Typography.Text strong>{value}</Typography.Text>,
     },
     {
-      title: 'Account',
+      title: t('common.account'),
       dataIndex: 'account',
     },
     {
-      title: 'Role',
+      title: t('admin.users.role'),
       dataIndex: 'role',
       render: (_, item) => {
         const meta = roleMeta[item.role];
@@ -64,22 +69,22 @@ export const AdminUsersPage = () => {
 
   return (
     <PageContainer
-      title="Users"
+      title={t('nav.users')}
       breadcrumb={{
         items: [
-          { title: 'Admin', path: '/admin/dashboard' },
-          { title: 'Users' },
+          { title: t('nav.admin'), path: '/admin/dashboard' },
+          { title: t('nav.users') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load users"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('admin.users.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -96,9 +101,9 @@ export const AdminUsersPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description="No users available">
+              <Empty description={t('admin.users.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-                  User management data will appear here once connected.
+                  {t('admin.users.emptyHint')}
                 </Typography.Paragraph>
               </Empty>
             ),
@@ -106,7 +111,7 @@ export const AdminUsersPage = () => {
           toolBarRender={() => [
             <Input.Search
               key="search"
-              placeholder="Search user"
+              placeholder={t('admin.users.searchPlaceholder')}
               allowClear
               onSearch={(value) => setKeyword(value.trim())}
               style={{ width: 220 }}
@@ -117,10 +122,10 @@ export const AdminUsersPage = () => {
               onChange={(value) => setRoleFilter(value)}
               style={{ width: 160 }}
               options={[
-                { label: 'All roles', value: 'all' },
-                { label: 'Student', value: 'STUDENT' },
-                { label: 'Teacher', value: 'TEACHER' },
-                { label: 'Admin', value: 'ADMIN' },
+                { label: t('common.allRoles'), value: 'all' },
+                { label: t('role.student'), value: 'STUDENT' },
+                { label: t('role.teacher'), value: 'TEACHER' },
+                { label: t('role.admin'), value: 'ADMIN' },
               ]}
             />,
           ]}

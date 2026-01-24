@@ -10,6 +10,7 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
+import type { ReadableStream } from 'stream/web';
 
 @Injectable()
 export class StorageService {
@@ -83,7 +84,7 @@ export class StorageService {
     }
 
     if (typeof (body as { getReader?: () => unknown }).getReader === 'function') {
-      const readable = Readable.fromWeb(body as any);
+      const readable = Readable.fromWeb(body as ReadableStream<Uint8Array>);
       return this.streamToBuffer(readable);
     }
 

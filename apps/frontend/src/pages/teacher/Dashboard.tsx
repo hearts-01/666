@@ -2,8 +2,10 @@ import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Alert, Button, Empty, Statistic, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchClasses } from '../../api';
+import { useI18n } from '../../i18n';
 
 export const TeacherDashboardPage = () => {
+  const { t } = useI18n();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['classes'],
     queryFn: fetchClasses,
@@ -13,22 +15,22 @@ export const TeacherDashboardPage = () => {
 
   return (
     <PageContainer
-      title="Dashboard"
+      title={t('nav.dashboard')}
       breadcrumb={{
         items: [
-          { title: 'Teacher', path: '/teacher/dashboard' },
-          { title: 'Dashboard' },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.dashboard') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load dashboard"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('teacher.dashboard.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -36,27 +38,27 @@ export const TeacherDashboardPage = () => {
       ) : null}
       <ProCard gutter={16} wrap>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Statistic title="Classes" value={classCount} />
-          <Typography.Text type="secondary">Track active classes you manage.</Typography.Text>
+          <Statistic title={t('teacher.dashboard.classes')} value={classCount} />
+          <Typography.Text type="secondary">{t('teacher.dashboard.trackClasses')}</Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Submission Activity</Typography.Text>
+          <Typography.Text type="secondary">{t('teacher.dashboard.submissionActivity')}</Typography.Text>
           {/* TODO: connect submission analytics */}
-          <Empty description="No activity data yet" />
+          <Empty description={t('teacher.dashboard.noActivity')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Average Score Trend</Typography.Text>
+          <Typography.Text type="secondary">{t('teacher.dashboard.avgScoreTrend')}</Typography.Text>
           {/* TODO: connect score trend analytics */}
-          <Empty description="Score trend will appear here" />
+          <Empty description={t('teacher.dashboard.scoreTrendPlaceholder')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Top Mistakes</Typography.Text>
+          <Typography.Text type="secondary">{t('teacher.dashboard.topMistakes')}</Typography.Text>
           {/* TODO: connect error analytics */}
-          <Empty description="No insights yet" />
+          <Empty description={t('teacher.dashboard.noInsights')} />
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">Upcoming Deadlines</Typography.Text>
-          <Empty description="Review class schedules" />
+          <Typography.Text type="secondary">{t('teacher.dashboard.upcomingDeadlines')}</Typography.Text>
+          <Empty description={t('teacher.dashboard.reviewSchedules')} />
         </ProCard>
       </ProCard>
     </PageContainer>

@@ -1,21 +1,24 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Empty, Typography } from 'antd';
+import { useI18n } from '../../i18n';
 
 export const StudentReportPage = () => {
+  const { t } = useI18n();
+
   return (
     <PageContainer
-      title="Personal Report"
+      title={t('student.report.title')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/dashboard' },
-          { title: 'Report' },
+          { title: t('nav.student'), path: '/student/dashboard' },
+          { title: t('nav.report') },
         ],
       }}
     >
       <ProCard bordered>
-        <Empty description="No analytics yet">
+        <Empty description={t('student.report.empty')}>
           <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-            Charts and trends will appear here once analytics endpoints are available.
+            {t('student.report.emptyHint')}
           </Typography.Paragraph>
         </Empty>
       </ProCard>

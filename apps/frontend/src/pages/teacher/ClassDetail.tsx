@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchClassStudents, fetchClasses, fetchHomeworksByClass } from '../../api';
+import { useI18n } from '../../i18n';
 
 type StudentRow = {
   id: string;
@@ -32,6 +33,7 @@ type HomeworkRow = {
 export const TeacherClassDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const classesQuery = useQuery({
     queryKey: ['classes'],
@@ -57,37 +59,37 @@ export const TeacherClassDetailPage = () => {
 
   const studentColumns: ProColumns<StudentRow>[] = [
     {
-      title: 'Student Name',
+      title: t('teacher.classDetail.studentName'),
       dataIndex: 'name',
       render: (value) => <Typography.Text strong>{value}</Typography.Text>,
     },
     {
-      title: 'Account',
+      title: t('common.account'),
       dataIndex: 'account',
     },
   ];
 
   const homeworkColumns: ProColumns<HomeworkRow>[] = [
     {
-      title: 'Homework',
+      title: t('common.homework'),
       dataIndex: 'title',
       render: (value) => <Typography.Text strong>{value}</Typography.Text>,
     },
     {
-      title: 'Due',
+      title: t('common.due'),
       dataIndex: 'dueAt',
-      renderText: (value) => (value ? new Date(value).toLocaleString() : 'No due date'),
+      renderText: (value) => (value ? new Date(value).toLocaleString() : t('status.noDue')),
       width: 220,
     },
     {
-      title: 'Action',
+      title: t('common.action'),
       valueType: 'option',
       render: (_, item) => [
         <Button
           key="detail"
           onClick={() => navigate(`/teacher/homeworks/${item.id}`, { state: { homework: item, classId: id } })}
         >
-          View
+          {t('common.view')}
         </Button>,
       ],
     },
@@ -95,27 +97,27 @@ export const TeacherClassDetailPage = () => {
 
   return (
     <PageContainer
-      title="Class Detail"
+      title={t('teacher.classDetail.title')}
       breadcrumb={{
         items: [
-          { title: 'Teacher', path: '/teacher/dashboard' },
-          { title: 'Classes', path: '/teacher/classes' },
-          { title: classItem?.name || 'Detail' },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.classes'), path: '/teacher/classes' },
+          { title: classItem?.name || t('common.detail') },
         ],
       }}
     >
       {classesQuery.isError ? (
         <Alert
           type="error"
-          message="Failed to load class"
+          message={t('teacher.classDetail.loadError')}
           description={
             classesQuery.error instanceof Error
               ? classesQuery.error.message
-              : 'Please try again.'
+              : t('common.tryAgain')
           }
           action={
             <Button size="small" onClick={() => classesQuery.refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -124,9 +126,9 @@ export const TeacherClassDetailPage = () => {
       {classesQuery.isLoading && !classesQuery.data ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !classItem ? (
-        <Empty description="Class not found">
+        <Empty description={t('teacher.classDetail.notFound')}>
           <Button type="primary" onClick={() => navigate('/teacher/classes')}>
-            Back to Classes
+            {t('common.backToClasses')}
           </Button>
         </Empty>
       ) : (
@@ -134,25 +136,27 @@ export const TeacherClassDetailPage = () => {
           items={[
             {
               key: 'overview',
-              label: 'Overview',
+              label: t('common.overview'),
               children: (
                 <ProCard bordered>
                   <Space direction="vertical" size="large" style={{ width: '100%' }}>
                     <Descriptions column={1} bordered>
-                      <Descriptions.Item label="Class Name">{classItem.name}</Descriptions.Item>
-                      <Descriptions.Item label="Grade">
-                        {classItem.grade ? <Tag>{classItem.grade}</Tag> : 'Unassigned'}
+                      <Descriptions.Item label={t('teacher.classDetail.className')}>
+                        {classItem.name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('teacher.classDetail.grade')}>
+                        {classItem.grade ? <Tag>{classItem.grade}</Tag> : t('teacher.classDetail.unassigned')}
                       </Descriptions.Item>
                     </Descriptions>
                     <ProCard gutter={16} wrap>
                       <ProCard bordered colSpan={{ xs: 24, md: 12 }}>
-                        <Typography.Text type="secondary">Students</Typography.Text>
+                        <Typography.Text type="secondary">{t('nav.students')}</Typography.Text>
                         <Typography.Title level={3} style={{ margin: '8px 0 0' }}>
                           {studentsQuery.data?.length ?? 0}
                         </Typography.Title>
                       </ProCard>
                       <ProCard bordered colSpan={{ xs: 24, md: 12 }}>
-                        <Typography.Text type="secondary">Homeworks</Typography.Text>
+                        <Typography.Text type="secondary">{t('nav.homeworks')}</Typography.Text>
                         <Typography.Title level={3} style={{ margin: '8px 0 0' }}>
                           {homeworksQuery.data?.length ?? 0}
                         </Typography.Title>
@@ -164,21 +168,21 @@ export const TeacherClassDetailPage = () => {
             },
             {
               key: 'students',
-              label: 'Students',
+              label: t('nav.students'),
               children: (
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   {studentsQuery.isError ? (
                     <Alert
                       type="error"
-                      message="Failed to load students"
+                      message={t('teacher.classDetail.loadStudentsError')}
                       description={
                         studentsQuery.error instanceof Error
                           ? studentsQuery.error.message
-                          : 'Please try again.'
+                          : t('common.tryAgain')
                       }
                       action={
                         <Button size="small" onClick={() => studentsQuery.refetch()}>
-                          Retry
+                          {t('common.retry')}
                         </Button>
                       }
                     />
@@ -192,7 +196,7 @@ export const TeacherClassDetailPage = () => {
                       search={false}
                       pagination={{ pageSize: 8 }}
                       options={false}
-                      locale={{ emptyText: <Empty description="No students yet" /> }}
+                      locale={{ emptyText: <Empty description={t('teacher.classDetail.noStudents')} /> }}
                     />
                   </ProCard>
                 </Space>
@@ -200,21 +204,21 @@ export const TeacherClassDetailPage = () => {
             },
             {
               key: 'homeworks',
-              label: 'Homeworks',
+              label: t('nav.homeworks'),
               children: (
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   {homeworksQuery.isError ? (
                     <Alert
                       type="error"
-                      message="Failed to load homeworks"
+                      message={t('teacher.classDetail.loadHomeworksError')}
                       description={
                         homeworksQuery.error instanceof Error
                           ? homeworksQuery.error.message
-                          : 'Please try again.'
+                          : t('common.tryAgain')
                       }
                       action={
                         <Button size="small" onClick={() => homeworksQuery.refetch()}>
-                          Retry
+                          {t('common.retry')}
                         </Button>
                       }
                     />
@@ -228,7 +232,7 @@ export const TeacherClassDetailPage = () => {
                       search={false}
                       pagination={{ pageSize: 6 }}
                       options={false}
-                      locale={{ emptyText: <Empty description="No homeworks yet" /> }}
+                      locale={{ emptyText: <Empty description={t('teacher.classDetail.noHomeworks')} /> }}
                     />
                   </ProCard>
                 </Space>

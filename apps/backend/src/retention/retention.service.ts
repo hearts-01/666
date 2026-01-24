@@ -55,10 +55,12 @@ export class RetentionService {
     };
 
     let cursor: { createdAt: Date; id: string } | null = null;
+    let hasMore = true;
 
-    while (true) {
+    while (hasMore) {
       const submissions = await this.findExpiredSubmissions(cutoffDate, batchSize, cursor);
       if (!submissions.length) {
+        hasMore = false;
         break;
       }
 

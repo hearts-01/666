@@ -14,7 +14,8 @@ export class AuthService {
   ) {}
 
   private sanitizeUser(user: User) {
-    const { passwordHash, ...safe } = user;
+    const safe = { ...user } as Omit<User, 'passwordHash'> & { passwordHash?: string };
+    delete safe.passwordHash;
     return safe;
   }
 

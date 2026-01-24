@@ -1,33 +1,36 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Empty, Statistic, Typography } from 'antd';
+import { useI18n } from '../../i18n';
 
 export const AdminDashboardPage = () => {
+  const { t } = useI18n();
+
   return (
     <PageContainer
-      title="Admin Dashboard"
+      title={t('admin.dashboard.title')}
       breadcrumb={{
         items: [
-          { title: 'Admin', path: '/admin/dashboard' },
-          { title: 'Dashboard' },
+          { title: t('nav.admin'), path: '/admin/dashboard' },
+          { title: t('nav.dashboard') },
         ],
       }}
     >
       <ProCard gutter={16} wrap>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title="Active Users" value={0} />
-          <Typography.Text type="secondary">Awaiting user metrics.</Typography.Text>
+          <Statistic title={t('admin.dashboard.activeUsers')} value={0} />
+          <Typography.Text type="secondary">{t('admin.dashboard.awaitingMetrics')}</Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title="LLM Calls Today" value={0} />
-          <Typography.Text type="secondary">Realtime usage will appear here.</Typography.Text>
+          <Statistic title={t('admin.dashboard.llmCallsToday')} value={0} />
+          <Typography.Text type="secondary">{t('admin.dashboard.realtimeUsage')}</Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title="Retention Runs" value={0} />
-          <Typography.Text type="secondary">Scheduled retention results pending.</Typography.Text>
+          <Statistic title={t('admin.dashboard.retentionRuns')} value={0} />
+          <Typography.Text type="secondary">{t('admin.dashboard.retentionPending')}</Typography.Text>
         </ProCard>
-        <ProCard bordered colSpan={{ xs: 24, md: 24 }} title="System Overview">
+        <ProCard bordered colSpan={{ xs: 24, md: 24 }} title={t('admin.dashboard.systemOverview')}>
           {/* TODO: connect admin monitoring API */}
-          <Empty description="Monitoring dashboards will appear here" />
+          <Empty description={t('admin.dashboard.monitoringEmpty')} />
         </ProCard>
       </ProCard>
     </PageContainer>

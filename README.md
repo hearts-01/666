@@ -57,6 +57,9 @@ docker compose up --build
 - 后端示例：`apps/backend/.env.example`（包含 `DATABASE_URL`、`REDIS_URL`、`MINIO_*`、`OCR_BASE_URL`、`LLM_*`、`WORKER_CONCURRENCY` 等）
 - 前端示例：`apps/frontend/.env.example`（`VITE_API_BASE_URL`）
 
+## Documentation
+- 项目概览：`docs/PROJECT_OVERVIEW.md`
+
 ## 后续扩展指引（按 Phase 路线）
 1. 完善 Auth + RBAC，接入 Prisma 迁移与 JWT
 2. 实现提交上传 ➜ MinIO/S3 存储封装 ➜ 队列状态机

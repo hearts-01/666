@@ -90,7 +90,7 @@ export const SubmissionResultPage = () => {
     [t],
   );
 
-  const errorCodeMessages = useMemo<Record<string, string>>(
+  const errorCodeMessages = useMemo(
     () => ({
       OCR_EMPTY: t('submission.error.ocrEmpty'),
       OCR_TIMEOUT: t('submission.error.ocrTimeout'),

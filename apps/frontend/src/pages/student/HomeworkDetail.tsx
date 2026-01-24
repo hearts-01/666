@@ -4,10 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchStudentHomeworks } from '../../api';
+import { useI18n } from '../../i18n';
 
 export const StudentHomeworkDetailPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { t } = useI18n();
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['student-homeworks'],
@@ -19,32 +21,34 @@ export const StudentHomeworkDetailPage = () => {
     [data, id],
   );
 
-  const dueAtLabel = homework?.dueAt ? new Date(homework.dueAt).toLocaleString() : 'Flexible';
+  const dueAtLabel = homework?.dueAt
+    ? new Date(homework.dueAt).toLocaleString()
+    : t('student.homeworkDetail.flexible');
   const dueTag = homework?.dueAt
     ? new Date(homework.dueAt).getTime() < Date.now()
-      ? 'Overdue'
-      : 'Open'
-    : 'No due date';
+      ? t('status.overdue')
+      : t('status.open')
+    : t('status.noDue');
 
   return (
     <PageContainer
-      title="Homework Detail"
+      title={t('student.homeworkDetail.title')}
       breadcrumb={{
         items: [
-          { title: 'Student', path: '/student/dashboard' },
-          { title: 'Homeworks', path: '/student/homeworks' },
-          { title: 'Detail' },
+          { title: t('nav.student'), path: '/student/dashboard' },
+          { title: t('nav.homeworks'), path: '/student/homeworks' },
+          { title: t('common.detail') },
         ],
       }}
     >
       {isError ? (
         <Alert
           type="error"
-          message="Failed to load homework"
-          description={error instanceof Error ? error.message : 'Please try again.'}
+          message={t('student.homeworkDetail.loadError')}
+          description={error instanceof Error ? error.message : t('common.tryAgain')}
           action={
             <Button size="small" onClick={() => refetch()}>
-              Retry
+              {t('common.retry')}
             </Button>
           }
           style={{ marginBottom: 16 }}
@@ -53,9 +57,9 @@ export const StudentHomeworkDetailPage = () => {
       {isLoading && !data ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !homework ? (
-        <Empty description="Homework not found">
+        <Empty description={t('student.homeworkDetail.notFound')}>
           <Button type="primary" onClick={() => navigate('/student/homeworks')}>
-            Back to Homeworks
+            {t('common.backToHomeworks')}
           </Button>
         </Empty>
       ) : (
@@ -65,36 +69,36 @@ export const StudentHomeworkDetailPage = () => {
             title={homework.title}
             extra={
               <Button type="primary" onClick={() => navigate(`/student/submit/${homework.id}`)}>
-                Submit Homework
+                {t('student.homeworkDetail.submitHomework')}
               </Button>
             }
           >
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="Class">{homework.class.name}</Descriptions.Item>
-              <Descriptions.Item label="Due Date">{dueAtLabel}</Descriptions.Item>
-              <Descriptions.Item label="Status">
+              <Descriptions.Item label={t('common.class')}>{homework.class.name}</Descriptions.Item>
+              <Descriptions.Item label={t('common.dueDate')}>{dueAtLabel}</Descriptions.Item>
+              <Descriptions.Item label={t('common.status')}>
                 <Tag>{dueTag}</Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
+              <Descriptions.Item label={t('common.description')}>
                 {homework.desc ? (
                   <Typography.Paragraph style={{ margin: 0 }}>{homework.desc}</Typography.Paragraph>
                 ) : (
-                  <Typography.Text type="secondary">No description provided.</Typography.Text>
+                  <Typography.Text type="secondary">{t('common.noDescriptionProvided')}</Typography.Text>
                 )}
               </Descriptions.Item>
             </Descriptions>
           </ProCard>
           <ProCard
             bordered
-            title="Submission History"
+            title={t('student.homeworkDetail.submissionHistory')}
             extra={
               <Button onClick={() => navigate('/student/submissions')}>
-                View All Submissions
+                {t('common.viewAllSubmissions')}
               </Button>
             }
           >
             {/* TODO: connect submission history API for homework */}
-            <Empty description="No submission history available" />
+            <Empty description={t('student.homeworkDetail.noSubmissionHistory')} />
           </ProCard>
         </Space>
       )}
