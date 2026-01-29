@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Role, SubmissionStatus } from '@prisma/client';
-import PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthUser } from '../auth/auth.types';
 import { ReportRangeQueryDto } from './dto/report-range-query.dto';

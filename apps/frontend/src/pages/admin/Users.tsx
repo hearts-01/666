@@ -5,7 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import {
   createAdminUser,
+  fetchClasses,
   fetchAdminUsers,
+  importClassStudents,
   resetAdminUserPassword,
   updateAdminUser,
   type AdminUser,
@@ -32,6 +34,20 @@ export const AdminUsersPage = () => {
     queryKey: ['admin-users'],
     queryFn: () => fetchAdminUsers(),
   });
+
+  const classesQuery = useQuery({
+    queryKey: ['classes'],
+    queryFn: fetchClasses,
+  });
+
+  const classOptions = useMemo(
+    () =>
+      (classesQuery.data || []).map((klass: { id: string; name: string }) => ({
+        label: klass.name,
+        value: klass.id,
+      })),
+    [classesQuery.data],
+  );
 
   const createMutation = useMutation({
     mutationFn: createAdminUser,
@@ -62,6 +78,13 @@ export const AdminUsersPage = () => {
       resetAdminUserPassword(id, password),
     onSuccess: () => message.success(t('admin.users.resetSuccess')),
     onError: () => message.error(t('admin.users.resetFailed')),
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: ({ classId, account, name }: { classId: string; account: string; name: string }) =>
+      importClassStudents(classId, { students: [{ account, name }] }),
+    onSuccess: () => message.success(t('admin.users.assignSuccess')),
+    onError: () => message.error(t('admin.users.assignFailed')),
   });
 
   const filteredData = useMemo(() => {
@@ -139,6 +162,34 @@ export const AdminUsersPage = () => {
             ]}
           />
         </ModalForm>,
+        item.role === 'STUDENT' ? (
+          <ModalForm
+            key="assign"
+            title={t('admin.users.assignClass')}
+            trigger={<Button size="small">{t('admin.users.assignClass')}</Button>}
+            onFinish={async (values) => {
+              try {
+                await assignMutation.mutateAsync({
+                  classId: values.classId as string,
+                  account: item.account,
+                  name: item.name,
+                });
+                return true;
+              } catch {
+                return false;
+              }
+            }}
+            modalProps={{ destroyOnClose: true }}
+          >
+            <ProFormSelect
+              name="classId"
+              label={t('admin.users.assignClassLabel')}
+              options={classOptions}
+              placeholder={t('admin.users.assignClassPlaceholder')}
+              rules={[{ required: true, message: t('admin.users.assignClassRequired') }]}
+            />
+          </ModalForm>
+        ) : null,
         <ModalForm
           key="reset"
           title={t('admin.users.resetPassword')}
@@ -172,7 +223,7 @@ export const AdminUsersPage = () => {
             }
           />
         </Space>,
-      ],
+      ].filter(Boolean),
     },
   ];
 

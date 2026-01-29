@@ -1,5 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
+import { ModalForm, PageContainer, ProCard, ProFormTextArea, ProTable } from '@ant-design/pro-components';
 import {
   Alert,
   Button,
@@ -12,7 +12,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -20,6 +20,7 @@ import {
   fetchClassStudents,
   fetchClasses,
   fetchHomeworksByClass,
+  importClassStudents,
 } from '../../api';
 import { useI18n } from '../../i18n';
 
@@ -40,6 +41,7 @@ export const TeacherClassDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
+  const queryClient = useQueryClient();
 
   const classesQuery = useQuery({
     queryKey: ['classes'],
@@ -61,6 +63,16 @@ export const TeacherClassDetailPage = () => {
     queryKey: ['homeworks', id],
     queryFn: () => fetchHomeworksByClass(id || ''),
     enabled: !!id,
+  });
+
+  const importMutation = useMutation({
+    mutationFn: ({ classId, text }: { classId: string; text: string }) =>
+      importClassStudents(classId, { text }),
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ['class-students', id] });
+      message.success(`${t('teacher.classDetail.importSuccess')} ${data.enrolled}`);
+    },
+    onError: () => message.error(t('teacher.classDetail.importFailed')),
   });
 
   const downloadBlob = (blob: Blob, filename: string) => {
@@ -230,6 +242,41 @@ export const TeacherClassDetailPage = () => {
                       pagination={{ pageSize: 8 }}
                       options={false}
                       locale={{ emptyText: <Empty description={t('teacher.classDetail.noStudents')} /> }}
+                      toolBarRender={() => [
+                        <ModalForm
+                          key="import"
+                          title={t('teacher.classDetail.importTitle')}
+                          trigger={<Button type="primary">{t('teacher.classDetail.importStudents')}</Button>}
+                          onFinish={async (values) => {
+                            if (!id) {
+                              return false;
+                            }
+                            const text = String(values.text || '').trim();
+                            if (!text) {
+                              message.warning(t('teacher.classDetail.importEmpty'));
+                              return false;
+                            }
+                            try {
+                              await importMutation.mutateAsync({ classId: id, text });
+                              return true;
+                            } catch {
+                              return false;
+                            }
+                          }}
+                          modalProps={{ destroyOnClose: true }}
+                        >
+                          <ProFormTextArea
+                            name="text"
+                            label={t('teacher.classDetail.importLabel')}
+                            placeholder={t('teacher.classDetail.importPlaceholder')}
+                            fieldProps={{ rows: 6 }}
+                            rules={[{ required: true, message: t('teacher.classDetail.importRequired') }]}
+                          />
+                          <Typography.Text type="secondary">
+                            {t('teacher.classDetail.importHint')}
+                          </Typography.Text>
+                        </ModalForm>,
+                      ]}
                     />
                   </ProCard>
                 </Space>
