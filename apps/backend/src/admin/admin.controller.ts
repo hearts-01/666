@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AdminService } from './admin.service';
+import { AdminUsageQueryDto } from './dto/admin-usage-query.dto';
 import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
@@ -19,6 +20,21 @@ export class AdminController {
   @Get('metrics')
   async metrics() {
     return this.adminService.getMetrics();
+  }
+
+  @Get('usage')
+  async usage(@Query() query: AdminUsageQueryDto) {
+    return this.adminService.getUsage(query);
+  }
+
+  @Get('health/llm')
+  async llmHealth() {
+    return this.adminService.testLlmConnection();
+  }
+
+  @Get('health/ocr')
+  async ocrHealth() {
+    return this.adminService.testOcrConnection();
   }
 
   @Get('users')

@@ -7,19 +7,32 @@ import {
   Form,
   Input,
   InputNumber,
+  Space,
   Select,
   Switch,
+  Tag,
   Typography,
   message,
 } from 'antd';
-import { useEffect } from 'react';
-import { fetchAdminConfig, updateAdminConfig } from '../../api';
+import { useEffect, useState } from 'react';
+import { fetchAdminConfig, testAdminLlmHealth, testAdminOcrHealth, updateAdminConfig } from '../../api';
 import { useI18n } from '../../i18n';
+
+type HealthState = {
+  ok: boolean;
+  checkedAt: string;
+  reason?: string;
+  status?: number;
+  latencyMs?: number;
+  model?: string;
+};
 
 export const AdminConfigPage = () => {
   const { t } = useI18n();
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
+  const [llmHealth, setLlmHealth] = useState<HealthState | null>(null);
+  const [ocrHealth, setOcrHealth] = useState<HealthState | null>(null);
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['admin-config'],
@@ -31,6 +44,51 @@ export const AdminConfigPage = () => {
     onSuccess: () => {
       message.success(t('admin.config.saved'));
       queryClient.invalidateQueries({ queryKey: ['admin-config'] });
+    },
+  });
+
+  const llmHealthMutation = useMutation({
+    mutationFn: testAdminLlmHealth,
+    onSuccess: (data) => {
+      setLlmHealth({
+        ok: data.ok,
+        checkedAt: new Date().toISOString(),
+        reason: data.reason,
+        status: data.status,
+        latencyMs: data.latencyMs,
+        model: data.model,
+      });
+      if (data.ok) {
+        message.success(t('admin.config.llmHealthOk'));
+      } else {
+        message.error(`${t('admin.config.llmHealthFail')}: ${data.reason || data.status || ''}`);
+      }
+    },
+    onError: () => {
+      setLlmHealth({ ok: false, checkedAt: new Date().toISOString(), reason: t('common.tryAgain') });
+      message.error(t('admin.config.llmHealthFail'));
+    },
+  });
+
+  const ocrHealthMutation = useMutation({
+    mutationFn: testAdminOcrHealth,
+    onSuccess: (data) => {
+      setOcrHealth({
+        ok: data.ok,
+        checkedAt: new Date().toISOString(),
+        reason: data.reason,
+        status: data.status,
+        latencyMs: data.latencyMs,
+      });
+      if (data.ok) {
+        message.success(t('admin.config.ocrHealthOk'));
+      } else {
+        message.error(`${t('admin.config.ocrHealthFail')}: ${data.reason || data.status || ''}`);
+      }
+    },
+    onError: () => {
+      setOcrHealth({ ok: false, checkedAt: new Date().toISOString(), reason: t('common.tryAgain') });
+      message.error(t('admin.config.ocrHealthFail'));
     },
   });
 
@@ -61,6 +119,8 @@ export const AdminConfigPage = () => {
         mode: config.budget.mode,
       },
     });
+    setLlmHealth(config.health?.llm ?? null);
+    setOcrHealth(config.health?.ocr ?? null);
   }, [config, form]);
 
   const handleFinish = (values: {
@@ -147,6 +207,31 @@ export const AdminConfigPage = () => {
             <Form.Item label={t('admin.config.timeoutMs')} name={['llm', 'timeoutMs']}>
               <InputNumber min={1000} step={500} style={{ width: '100%' }} />
             </Form.Item>
+            <Button
+              onClick={() => llmHealthMutation.mutate()}
+              loading={llmHealthMutation.isPending}
+            >
+              {t('admin.config.testLlm')}
+            </Button>
+            {llmHealth ? (
+              <Space size={8} style={{ marginTop: 8 }} wrap>
+                <Tag color={llmHealth.ok ? 'green' : 'red'}>
+                  {llmHealth.ok ? t('admin.config.llmHealthOk') : t('admin.config.llmHealthFail')}
+                </Tag>
+                <Typography.Text type="secondary">
+                  {t('admin.config.lastChecked')} {new Date(llmHealth.checkedAt).toLocaleString()}
+                </Typography.Text>
+                {llmHealth.model ? (
+                  <Typography.Text type="secondary">{llmHealth.model}</Typography.Text>
+                ) : null}
+                {typeof llmHealth.latencyMs === 'number' ? (
+                  <Typography.Text type="secondary">{llmHealth.latencyMs}ms</Typography.Text>
+                ) : null}
+                {!llmHealth.ok && llmHealth.reason ? (
+                  <Typography.Text type="secondary">{llmHealth.reason}</Typography.Text>
+                ) : null}
+              </Space>
+            ) : null}
           </ProCard>
 
           <Divider />
@@ -158,6 +243,28 @@ export const AdminConfigPage = () => {
             <Form.Item label={t('admin.config.ocrTimeout')} name={['ocr', 'timeoutMs']}>
               <InputNumber min={1000} step={500} style={{ width: '100%' }} />
             </Form.Item>
+            <Button
+              onClick={() => ocrHealthMutation.mutate()}
+              loading={ocrHealthMutation.isPending}
+            >
+              {t('admin.config.testOcr')}
+            </Button>
+            {ocrHealth ? (
+              <Space size={8} style={{ marginTop: 8 }} wrap>
+                <Tag color={ocrHealth.ok ? 'green' : 'red'}>
+                  {ocrHealth.ok ? t('admin.config.ocrHealthOk') : t('admin.config.ocrHealthFail')}
+                </Tag>
+                <Typography.Text type="secondary">
+                  {t('admin.config.lastChecked')} {new Date(ocrHealth.checkedAt).toLocaleString()}
+                </Typography.Text>
+                {typeof ocrHealth.latencyMs === 'number' ? (
+                  <Typography.Text type="secondary">{ocrHealth.latencyMs}ms</Typography.Text>
+                ) : null}
+                {!ocrHealth.ok && ocrHealth.reason ? (
+                  <Typography.Text type="secondary">{ocrHealth.reason}</Typography.Text>
+                ) : null}
+              </Space>
+            ) : null}
           </ProCard>
 
           <Divider />

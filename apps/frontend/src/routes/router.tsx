@@ -11,6 +11,7 @@ import { AdminConfigPage } from '../pages/admin/Config';
 import { AdminSystemBudgetPage } from '../pages/admin/SystemBudget';
 import { AdminSystemRetentionPage } from '../pages/admin/SystemRetention';
 import { AdminUsersPage } from '../pages/admin/Users';
+import { AdminUsagePage } from '../pages/admin/Usage';
 import { StudentDashboardPage } from '../pages/student/Dashboard';
 import { StudentHomeworkDetailPage } from '../pages/student/HomeworkDetail';
 import { StudentHomeworksPage } from '../pages/student/Homeworks';
@@ -25,6 +26,7 @@ import { TeacherDashboardPage } from '../pages/teacher/Dashboard';
 import { TeacherHomeworkDetailPage } from '../pages/teacher/HomeworkDetail';
 import { TeacherHomeworksPage } from '../pages/teacher/Homeworks';
 import { TeacherReportPage } from '../pages/teacher/Report';
+import { TeacherStudentReportPage } from '../pages/teacher/StudentReport';
 import { TeacherSettingsGradingPage } from '../pages/teacher/SettingsGrading';
 import { TeacherSubmissionDetailPage } from '../pages/teacher/SubmissionDetail';
 import { useI18n } from '../i18n';
@@ -70,6 +72,7 @@ export const router = createBrowserRouter([
       { path: 'homeworks/:id', element: <TeacherHomeworkDetailPage /> },
       { path: 'submission/:id', element: <TeacherSubmissionDetailPage /> },
       { path: 'reports', element: <TeacherReportPage /> },
+      { path: 'reports/student/:studentId', element: <TeacherStudentReportPage /> },
       { path: 'settings', element: <Navigate to="/teacher/settings/grading" replace /> },
       { path: 'settings/grading', element: <TeacherSettingsGradingPage /> },
       { path: '*', element: <NotFoundPage /> },
@@ -82,6 +85,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
       { path: 'dashboard', element: <AdminDashboardPage /> },
       { path: 'classes', element: <AdminClassesPage /> },
+      { path: 'usage', element: <AdminUsagePage /> },
       { path: 'users', element: <AdminUsersPage /> },
       { path: 'system', element: <Navigate to="/admin/system/budget" replace /> },
       { path: 'system/config', element: <AdminConfigPage /> },

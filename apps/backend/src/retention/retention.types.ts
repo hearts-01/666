@@ -17,3 +17,8 @@ export type RetentionStats = {
   sampleSubmissionIds: string[];
   sampleObjectKeys: string[];
 };
+
+export type RetentionHistoryEntry = RetentionStats & {
+  ranAt: string;
+  invokedBy: 'cron' | 'manual';
+};

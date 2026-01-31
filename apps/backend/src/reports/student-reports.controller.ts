@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, StreamableFile, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -28,6 +28,7 @@ export class StudentReportsController {
     const pdf = await this.reportsService.exportStudentPdf(req.user.id, query, req.user);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="student-${req.user.id}-report.pdf"`);
-    return pdf;
+    res.setHeader('Content-Length', pdf.length);
+    return new StreamableFile(pdf);
   }
 }

@@ -61,7 +61,7 @@ export const TeacherLayout = () => {
 
   return (
     <ProLayout
-      className="app-pro-layout"
+      className="app-pro-layout teacher-soft"
       title={t('app.title')}
       logo={false}
       navTheme="light"

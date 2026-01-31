@@ -1,4 +1,4 @@
-import { Layout, Menu, Typography, theme } from 'antd';
+import { Layout, Menu, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -10,7 +10,6 @@ const { Header, Content } = Layout;
 export const StudentLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { token } = theme.useToken();
   const { t } = useI18n();
 
   const selectedKey = useMemo(() => {
@@ -41,23 +40,22 @@ export const StudentLayout = () => {
   );
 
   return (
-    <Layout className="app-student-layout" style={{ minHeight: '100vh', background: token.colorBgLayout }}>
+    <Layout className="app-student-layout dashboard-clean" style={{ minHeight: '100vh' }}>
       <Header
+        className="student-dashboard__header"
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 20,
           padding: '0 28px',
           height: 60,
-          background: token.colorBgElevated,
-          borderBottom: `1px solid ${token.colorSplit}`,
-          boxShadow: token.boxShadowSecondary,
         }}
       >
-        <Typography.Title level={4} style={{ color: token.colorTextHeading, margin: 0 }}>
+        <Typography.Title level={4} className="student-dashboard__title" style={{ margin: 0 }}>
           {t('app.title')}
         </Typography.Title>
         <Menu
+          className="student-dashboard__menu"
           theme="light"
           mode="horizontal"
           selectedKeys={[selectedKey]}
@@ -76,14 +74,7 @@ export const StudentLayout = () => {
         <LanguageSwitcher />
       </Header>
       <Content>
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '24px 24px 40px',
-            width: '100%',
-          }}
-        >
+        <div className="student-dashboard__content">
           <Outlet />
         </div>
       </Content>

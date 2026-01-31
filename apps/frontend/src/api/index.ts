@@ -55,6 +55,24 @@ export type AdminSystemConfig = {
     dailyCallLimit?: number;
     mode: 'soft' | 'hard';
   };
+  health?: {
+    llm?: {
+      ok: boolean;
+      checkedAt: string;
+      reason?: string;
+      status?: number;
+      latencyMs?: number;
+      model?: string;
+    } | null;
+    ocr?: {
+      ok: boolean;
+      checkedAt: string;
+      reason?: string;
+      status?: number;
+      latencyMs?: number;
+      model?: string;
+    } | null;
+  };
 };
 
 export type TeacherSubmissionRow = {
@@ -231,6 +249,21 @@ export const fetchTeacherClassReportOverview = async (
     topRank: Array<{ studentId: string; name: string; avgScore: number; count: number }>;
     trend: Array<{ date: string; avg: number; count: number }>;
     errorTypes: Array<{ type: string; count: number; ratio: number }>;
+  };
+};
+
+export const fetchTeacherStudentReportOverview = async (studentId: string, days = 7) => {
+  const response = await api.get(`/teacher/reports/student/${studentId}/overview`, {
+    params: { days },
+  });
+  return response.data as {
+    studentId: string;
+    studentName: string;
+    rangeDays: number;
+    summary: { avg: number; min: number; max: number; count: number };
+    trend: Array<{ date: string; avg: number; count: number }>;
+    errorTypes: Array<{ type: string; count: number; ratio: number }>;
+    nextSteps: Array<{ text: string; count: number }>;
   };
 };
 
@@ -414,6 +447,83 @@ export const updateAdminConfig = async (payload: {
 }) => {
   const response = await api.put('/admin/config', payload);
   return response.data as AdminSystemConfig;
+};
+
+export const fetchAdminUsage = async (days = 7) => {
+  const response = await api.get('/admin/usage', { params: { days } });
+  return response.data as {
+    days: number;
+    summary: {
+      total: number;
+      done: number;
+      failed: number;
+      queued: number;
+      processing: number;
+    };
+    daily: Array<{
+      date: string;
+      total: number;
+      done: number;
+      failed: number;
+      queued: number;
+      processing: number;
+    }>;
+    errors: Array<{ code: string; count: number }>;
+    updatedAt: string;
+  };
+};
+
+export const testAdminLlmHealth = async () => {
+  const response = await api.get('/admin/health/llm');
+  return response.data as { ok: boolean; status?: number; latencyMs?: number; reason?: string; model?: string };
+};
+
+export const testAdminOcrHealth = async () => {
+  const response = await api.get('/admin/health/ocr');
+  return response.data as { ok: boolean; status?: number; latencyMs?: number; reason?: string };
+};
+
+export const fetchAdminRetentionStatus = async () => {
+  const response = await api.get('/admin/retention/status');
+  return response.data as {
+    config: {
+      retentionDays: number;
+      dryRunDefault: boolean;
+      batchSizeDefault: number;
+      cron: string;
+      runRetention: boolean;
+    };
+    history: Array<{
+      ranAt: string;
+      invokedBy: 'cron' | 'manual';
+      cutoffDate: string;
+      scanned: number;
+      deleted: number;
+      minioOk: number;
+      minioFailed: number;
+      dbFailed: number;
+      dryRun: boolean;
+      durationMs: number;
+      sampleSubmissionIds: string[];
+      sampleObjectKeys: string[];
+    }>;
+  };
+};
+
+export const runAdminRetention = async (payload: { days?: number; dryRun?: boolean; batchSize?: number }) => {
+  const response = await api.post('/admin/retention/run', payload);
+  return response.data as {
+    cutoffDate: string;
+    scanned: number;
+    deleted: number;
+    minioOk: number;
+    minioFailed: number;
+    dbFailed: number;
+    dryRun: boolean;
+    durationMs: number;
+    sampleSubmissionIds: string[];
+    sampleObjectKeys: string[];
+  };
 };
 
 export const createAdminUser = async (payload: {

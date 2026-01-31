@@ -1,5 +1,5 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Empty, List, Space, Statistic, Tag, Typography } from 'antd';
+import { Alert, Button, Empty, List, Progress, Space, Statistic, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchStudentHomeworks, fetchStudentReportOverview } from '../../api';
 import { useI18n } from '../../i18n';
@@ -30,7 +30,25 @@ export const StudentDashboardPage = () => {
     ? t('student.dashboard.reviewDeadlines')
     : t('student.dashboard.noUpcomingDeadlines');
   const report = reportQuery.data;
+  const summary = report?.summary;
   const topErrors = (report?.errorTypes || []).slice(0, 5);
+  const nextSteps = (report?.nextSteps || []).slice(0, 5);
+  const summaryCards = [
+    { key: 'assignments', title: t('student.dashboard.assignmentsAvailable'), value: homeworkCount },
+    { key: 'submissions', title: t('student.dashboard.weeklySubmissions'), value: summary?.count ?? '--' },
+    { key: 'avg', title: t('student.report.avgScore'), value: summary?.avg ?? '--' },
+    { key: 'max', title: t('student.report.highestScore'), value: summary?.max ?? '--' },
+  ];
+
+  const getDueStatus = (dueAt?: Date | null) => {
+    if (!dueAt) {
+      return { label: t('status.noDue'), color: 'default' as const };
+    }
+    if (dueAt.getTime() < Date.now()) {
+      return { label: t('status.overdue'), color: 'error' as const };
+    }
+    return { label: t('status.open'), color: 'success' as const };
+  };
 
   return (
     <PageContainer
@@ -55,74 +73,95 @@ export const StudentDashboardPage = () => {
           style={{ marginBottom: 16 }}
         />
       ) : null}
-      <ProCard gutter={16} wrap>
-        <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Statistic title={t('student.dashboard.assignmentsAvailable')} value={homeworkCount} />
-          <Typography.Text type="secondary">{t('student.dashboard.updatedFromList')}</Typography.Text>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <ProCard bordered title={t('student.report.summary')}>
+          <ProCard gutter={16} wrap>
+            {summaryCards.map((card) => (
+              <ProCard
+                bordered
+                key={card.key}
+                colSpan={{ xs: 24, sm: 12, md: 6 }}
+                loading={isLoading && !data}
+              >
+                <Statistic title={card.title} value={card.value} />
+                {card.key === 'assignments' ? (
+                  <Typography.Text type="secondary">{t('student.dashboard.updatedFromList')}</Typography.Text>
+                ) : null}
+              </ProCard>
+            ))}
+          </ProCard>
         </ProCard>
-        <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">{t('student.dashboard.weeklySubmissions')}</Typography.Text>
-          {report ? (
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Statistic value={report.summary.count} />
-              <Typography.Text type="secondary">
-                {t('common.avgShort')} {report.summary.avg}
-              </Typography.Text>
-            </Space>
-          ) : (
-            <Empty description={t('student.dashboard.noSubmissionSummary')} />
-          )}
+
+        <ProCard gutter={16} wrap>
+          <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('student.report.errorTypes')}>
+            {topErrors.length ? (
+              <List
+                dataSource={topErrors}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Space direction="vertical" style={{ width: '100%' }} size={8}>
+                      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                        <Typography.Text>{item.type}</Typography.Text>
+                        <Tag>{item.count}</Tag>
+                      </Space>
+                      <Progress
+                        percent={Math.round(item.ratio * 100)}
+                        showInfo={false}
+                        strokeColor="#1d4ed8"
+                      />
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description={t('student.dashboard.noErrorInsights')} />
+            )}
+          </ProCard>
+          <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('student.report.nextSteps')}>
+            {nextSteps.length ? (
+              <List
+                dataSource={nextSteps}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                      <Typography.Text>{item.text}</Typography.Text>
+                      <Typography.Text type="secondary">{item.count}</Typography.Text>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Empty description={t('student.report.noNextSteps')} />
+            )}
+          </ProCard>
         </ProCard>
-        <ProCard bordered colSpan={{ xs: 24, md: 8 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">{t('student.dashboard.avgScoreTrend')}</Typography.Text>
-          {report ? (
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Statistic value={report.summary.avg} />
-              <Typography.Text type="secondary">{t('student.dashboard.scoreTrendPlaceholder')}</Typography.Text>
-            </Space>
-          ) : (
-            <Empty description={t('student.dashboard.scoreTrendPlaceholder')} />
-          )}
-        </ProCard>
-        <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">{t('student.dashboard.topErrorTypes')}</Typography.Text>
-          {topErrors.length ? (
-            <List
-              dataSource={topErrors}
-              renderItem={(item) => (
-                <List.Item>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Typography.Text>{item.type}</Typography.Text>
-                    <Tag>{item.count}</Tag>
-                  </Space>
-                </List.Item>
-              )}
-            />
-          ) : (
-            <Empty description={t('student.dashboard.noErrorInsights')} />
-          )}
-        </ProCard>
-        <ProCard bordered colSpan={{ xs: 24, md: 12 }} loading={isLoading && !data}>
-          <Typography.Text type="secondary">{t('student.dashboard.upcomingDeadlines')}</Typography.Text>
+
+        <ProCard bordered title={t('student.dashboard.upcomingDeadlines')}>
           {upcoming.length ? (
             <List
               dataSource={upcoming}
-              renderItem={(item) => (
-                <List.Item>
-                  <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                    <Typography.Text>{item.title}</Typography.Text>
-                    <Typography.Text type="secondary">
-                      {item.dueAt ? item.dueAt.toLocaleString() : '--'}
-                    </Typography.Text>
-                  </Space>
-                </List.Item>
-              )}
+              renderItem={(item) => {
+                const status = getDueStatus(item.dueAt);
+                return (
+                  <List.Item>
+                    <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                      <Space direction="vertical" size={0}>
+                        <Typography.Text>{item.title}</Typography.Text>
+                        <Typography.Text type="secondary">
+                          {item.dueAt ? item.dueAt.toLocaleString() : '--'}
+                        </Typography.Text>
+                      </Space>
+                      <Tag color={status.color}>{status.label}</Tag>
+                    </Space>
+                  </List.Item>
+                );
+              }}
             />
           ) : (
             <Empty description={upcomingDeadlineText} />
           )}
         </ProCard>
-      </ProCard>
+      </Space>
     </PageContainer>
   );
 };

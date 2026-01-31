@@ -625,6 +625,7 @@ export class ReportsService {
   }
 
   private writeHeader(doc: PDFDocument, title: string, lines: string[]) {
+    doc.font('Helvetica');
     doc.fontSize(18).text(title, { align: 'left' });
     doc.moveDown(0.5);
     doc.fontSize(11);

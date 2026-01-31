@@ -1,6 +1,7 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { EChartsOption } from 'echarts';
-import * as echarts from 'echarts';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import {
   Alert,
   Button,
@@ -17,10 +18,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   downloadTeacherClassReportCsv,
-  downloadTeacherClassReportPdf,
   fetchClasses,
   fetchTeacherClassReportOverview,
 } from '../../api';
+import { ChartPanel } from '../../components/ChartPanel';
 import { useI18n } from '../../i18n';
 
 type ReportSummary = {
@@ -69,39 +70,12 @@ type ClassReport = {
   errorTypes: ErrorTypeStat[];
 };
 
-const ChartPanel = ({ option, height = 260 }: { option: EChartsOption; height?: number }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const instanceRef = useRef<echarts.ECharts | null>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) {
-      return undefined;
-    }
-    const instance = echarts.init(containerRef.current);
-    instanceRef.current = instance;
-    const handleResize = () => instance.resize();
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      instance.dispose();
-      instanceRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!instanceRef.current) {
-      return;
-    }
-    instanceRef.current.setOption(option, true);
-  }, [option]);
-
-  return <div ref={containerRef} style={{ width: '100%', height }} />;
-};
-
 export const TeacherReportPage = () => {
   const { t } = useI18n();
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [rangeDays, setRangeDays] = useState<number>(7);
+  const [exporting, setExporting] = useState(false);
+  const reportRef = useRef<HTMLDivElement | null>(null);
 
   const classesQuery = useQuery({
     queryKey: ['classes'],
@@ -162,7 +136,7 @@ export const TeacherReportPage = () => {
       xAxis: {
         type: 'category',
         data: data.map((item) => item.date),
-        axisLabel: { rotate: 30 },
+        axisLabel: { rotate: 30, width: 80, overflow: 'truncate' },
       },
       yAxis: [
         { type: 'value', name: t('common.avgShort') },
@@ -196,7 +170,7 @@ export const TeacherReportPage = () => {
       xAxis: {
         type: 'category',
         data: data.map((item) => item.type),
-        axisLabel: { interval: 0, rotate: 20 },
+        axisLabel: { interval: 0, rotate: 20, width: 80, overflow: 'truncate' },
       },
       yAxis: { type: 'value' },
       series: [
@@ -223,11 +197,38 @@ export const TeacherReportPage = () => {
       message.warning(t('teacher.reports.selectClassHint'));
       return;
     }
+    if (!reportRef.current) {
+      message.error(t('teacher.reports.exportFailed'));
+      return;
+    }
     try {
-      const blob = await downloadTeacherClassReportPdf(selectedClassId, rangeDays);
-      downloadBlob(blob, `class-${selectedClassId}-report.pdf`);
+      setExporting(true);
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let position = 0;
+      let heightLeft = imgHeight;
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save(`class-${selectedClassId}-report.pdf`);
     } catch {
       message.error(t('teacher.reports.exportFailed'));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -282,103 +283,107 @@ export const TeacherReportPage = () => {
             <Typography.Text>{t('teacher.reports.rangeDays')}</Typography.Text>
             <InputNumber min={1} max={30} value={rangeDays} onChange={(value) => setRangeDays(value || 7)} />
           </Space>
-          <Button onClick={handleExportPdf}>{t('teacher.reports.exportPdf')}</Button>
+          <Button onClick={handleExportPdf} loading={exporting}>
+            {t('teacher.reports.exportPdf')}
+          </Button>
           <Button onClick={handleExportCsv}>{t('teacher.reports.exportCsv')}</Button>
         </Space>
       </ProCard>
 
-      {!selectedClassId ? (
-        <Empty description={t('teacher.reports.selectClassHint')} />
-      ) : reportQuery.isLoading && !report ? (
-        <ProCard bordered loading />
-      ) : !report ? (
-        <Empty description={t('teacher.reports.noData')} />
-      ) : (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <ProCard bordered title={t('teacher.reports.insightsTitle')}>
-            <ProCard gutter={16} wrap>
-              <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('teacher.reports.totalStudents')} value={report.totalStudents} />
-              </ProCard>
-              <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('teacher.reports.submittedStudents')} value={report.submittedStudents} />
-              </ProCard>
-              <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('teacher.reports.pendingStudents')} value={report.pendingStudents} />
-              </ProCard>
-              <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('teacher.reports.submissionRate')} value={submissionRate} suffix="%" />
-              </ProCard>
-            </ProCard>
-          </ProCard>
-          <ProCard bordered title={t('teacher.reports.summary')}>
-            {hasSummary ? (
+      <div ref={reportRef}>
+        {!selectedClassId ? (
+          <Empty description={t('teacher.reports.selectClassHint')} />
+        ) : reportQuery.isLoading && !report ? (
+          <ProCard bordered loading />
+        ) : !report ? (
+          <Empty description={t('teacher.reports.noData')} />
+        ) : (
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <ProCard bordered title={t('teacher.reports.insightsTitle')}>
               <ProCard gutter={16} wrap>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.avgScore')} value={report.summary.avg} />
+                  <Statistic title={t('teacher.reports.totalStudents')} value={report.totalStudents} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.highestScore')} value={report.summary.max} />
+                  <Statistic title={t('teacher.reports.submittedStudents')} value={report.submittedStudents} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.lowestScore')} value={report.summary.min} />
+                  <Statistic title={t('teacher.reports.pendingStudents')} value={report.pendingStudents} />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.submissions')} value={report.summary.count} />
+                  <Statistic title={t('teacher.reports.submissionRate')} value={submissionRate} suffix="%" />
                 </ProCard>
               </ProCard>
-            ) : (
-              <Empty description={t('teacher.reports.noCompleted')} />
-            )}
-          </ProCard>
+            </ProCard>
+            <ProCard bordered title={t('teacher.reports.summary')}>
+              {hasSummary ? (
+                <ProCard gutter={16} wrap>
+                  <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
+                    <Statistic title={t('teacher.reports.avgScore')} value={report.summary.avg} />
+                  </ProCard>
+                  <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
+                    <Statistic title={t('teacher.reports.highestScore')} value={report.summary.max} />
+                  </ProCard>
+                  <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
+                    <Statistic title={t('teacher.reports.lowestScore')} value={report.summary.min} />
+                  </ProCard>
+                  <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
+                    <Statistic title={t('teacher.reports.submissions')} value={report.summary.count} />
+                  </ProCard>
+                </ProCard>
+              ) : (
+                <Empty description={t('teacher.reports.noCompleted')} />
+              )}
+            </ProCard>
 
-          <ProCard gutter={16} wrap>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.scoreDistribution')}>
-              {report.distribution?.length ? (
-                <ChartPanel option={distributionOption} />
-              ) : (
-                <Empty description={t('teacher.reports.noDistribution')} />
-              )}
+            <ProCard gutter={16} wrap>
+              <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.scoreDistribution')}>
+                {report.distribution?.length ? (
+                  <ChartPanel option={distributionOption} />
+                ) : (
+                  <Empty description={t('teacher.reports.noDistribution')} />
+                )}
+              </ProCard>
+              <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.trend')}>
+                {report.trend?.length ? (
+                  <ChartPanel option={trendOption} height={280} />
+                ) : (
+                  <Empty description={t('teacher.reports.noTrend')} />
+                )}
+              </ProCard>
             </ProCard>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.trend')}>
-              {report.trend?.length ? (
-                <ChartPanel option={trendOption} height={280} />
-              ) : (
-                <Empty description={t('teacher.reports.noTrend')} />
-              )}
-            </ProCard>
-          </ProCard>
 
-          <ProCard gutter={16} wrap>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topStudents')}>
-              {report.topRank?.length ? (
-                <List
-                  dataSource={report.topRank}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-                        <Typography.Text>{item.name}</Typography.Text>
-                        <Typography.Text>
-                          {t('common.avgShort')} {item.avgScore}
-                        </Typography.Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Empty description={t('teacher.reports.noRanking')} />
-              )}
+            <ProCard gutter={16} wrap>
+              <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topStudents')}>
+                {report.topRank?.length ? (
+                  <List
+                    dataSource={report.topRank}
+                    renderItem={(item) => (
+                      <List.Item>
+                        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                          <Typography.Text>{item.name}</Typography.Text>
+                          <Typography.Text>
+                            {t('common.avgShort')} {item.avgScore}
+                          </Typography.Text>
+                        </Space>
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <Empty description={t('teacher.reports.noRanking')} />
+                )}
+              </ProCard>
+              <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topErrorTypes')}>
+                {report.errorTypes?.length ? (
+                  <ChartPanel option={errorOption} />
+                ) : (
+                  <Empty description={t('teacher.reports.noErrorStats')} />
+                )}
+              </ProCard>
             </ProCard>
-            <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topErrorTypes')}>
-              {report.errorTypes?.length ? (
-                <ChartPanel option={errorOption} />
-              ) : (
-                <Empty description={t('teacher.reports.noErrorStats')} />
-              )}
-            </ProCard>
-          </ProCard>
-        </Space>
-      )}
+          </Space>
+        )}
+      </div>
     </PageContainer>
   );
 };

@@ -1,5 +1,6 @@
 import {
   ApartmentOutlined,
+  BarChartOutlined,
   DashboardOutlined,
   HistoryOutlined,
   SettingOutlined,
@@ -32,6 +33,11 @@ export const AdminLayout = () => {
           path: '/admin/classes',
           name: t('nav.classes'),
           icon: <ApartmentOutlined />,
+        },
+        {
+          path: '/admin/usage',
+          name: t('nav.usage'),
+          icon: <BarChartOutlined />,
         },
         {
           path: '/admin/users',
@@ -67,7 +73,7 @@ export const AdminLayout = () => {
 
   return (
     <ProLayout
-      className="app-pro-layout"
+      className="app-pro-layout admin-blueprint"
       title={t('app.title')}
       logo={false}
       navTheme="light"

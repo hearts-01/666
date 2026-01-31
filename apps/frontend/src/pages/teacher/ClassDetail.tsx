@@ -16,7 +16,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  downloadTeacherStudentReportPdf,
   fetchClassStudents,
   fetchClasses,
   fetchHomeworksByClass,
@@ -75,22 +74,8 @@ export const TeacherClassDetailPage = () => {
     onError: () => message.error(t('teacher.classDetail.importFailed')),
   });
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadStudentReport = async (studentId: string) => {
-    try {
-      const blob = await downloadTeacherStudentReportPdf(studentId, 7);
-      downloadBlob(blob, `student-${studentId}-report.pdf`);
-    } catch {
-      message.error(t('teacher.classDetail.downloadFailed'));
-    }
+  const handleDownloadStudentReport = (studentId: string) => {
+    window.open(`/teacher/reports/student/${studentId}?export=1`, '_blank');
   };
 
   const studentColumns: ProColumns<StudentRow>[] = [

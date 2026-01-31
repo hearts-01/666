@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, StreamableFile, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -54,7 +54,8 @@ export class ReportsController {
       'Content-Disposition',
       `attachment; filename="class-${classId}-report.pdf"`,
     );
-    return pdf;
+    res.setHeader('Content-Length', pdf.length);
+    return new StreamableFile(pdf);
   }
 
   @Get('student/:studentId/overview')
@@ -81,6 +82,7 @@ export class ReportsController {
       'Content-Disposition',
       `attachment; filename="student-${studentId}-report.pdf"`,
     );
-    return pdf;
+    res.setHeader('Content-Length', pdf.length);
+    return new StreamableFile(pdf);
   }
 }

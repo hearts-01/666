@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
-import { RetentionRunOptions, RetentionStats } from './retention.types';
+import { SystemConfigService } from '../system-config/system-config.service';
+import { RetentionHistoryEntry, RetentionRunOptions, RetentionStats } from './retention.types';
 
 const DEFAULT_RETENTION_CRON = process.env.RETENTION_CRON || '30 3 * * *';
 
@@ -17,6 +18,7 @@ export class RetentionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly systemConfigService: SystemConfigService,
     configService: ConfigService,
   ) {
     this.retentionDays = Number(configService.get<string>('RETENTION_DAYS') || '7');
@@ -131,7 +133,41 @@ export class RetentionService {
       );
     }
 
+    await this.recordHistory(stats, options.invokedBy || 'manual');
+
     return stats;
+  }
+
+  async getStatus() {
+    const history =
+      (await this.systemConfigService.getValue<RetentionHistoryEntry[]>('retention:history')) || [];
+    return {
+      config: {
+        retentionDays: this.retentionDays,
+        dryRunDefault: this.dryRunDefault,
+        batchSizeDefault: this.batchSizeDefault,
+        cron: DEFAULT_RETENTION_CRON,
+        runRetention: process.env.RUN_RETENTION === 'true',
+      },
+      history,
+    };
+  }
+
+  private async recordHistory(stats: RetentionStats, invokedBy: 'cron' | 'manual') {
+    try {
+      const history =
+        (await this.systemConfigService.getValue<RetentionHistoryEntry[]>('retention:history')) || [];
+      const entry: RetentionHistoryEntry = {
+        ...stats,
+        ranAt: new Date().toISOString(),
+        invokedBy,
+      };
+      const next = [entry, ...history].slice(0, 20);
+      await this.systemConfigService.setValue('retention:history', next);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Failed to store retention history: ${message}`);
+    }
   }
 
   private async findExpiredSubmissions(

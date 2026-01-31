@@ -1,5 +1,4 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Form, Input, Typography, message } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,10 +34,44 @@ export const LoginPage = () => {
   };
 
   return (
-    <PageContainer title={t('login.title')} extra={<LanguageSwitcher />}>
-      <div style={{ display: 'grid', placeItems: 'center', minHeight: '70vh' }}>
-        <Card style={{ width: 360 }}>
-          <Typography.Title level={4} style={{ textAlign: 'center' }}>
+    <div className="login-dashboard dashboard-clean">
+      <header className="login-dashboard__header">
+        <div className="login-dashboard__brand">
+          <span className="login-dashboard__brand-title">{t('app.title')}</span>
+          <span className="login-dashboard__brand-subtitle">{t('login.title')}</span>
+        </div>
+        <LanguageSwitcher />
+      </header>
+
+      <main className="login-dashboard__main">
+        <section className="login-dashboard__panel">
+          <div>
+            <Typography.Title level={2} className="login-dashboard__headline">
+              {t('login.welcomeTitle')}
+            </Typography.Title>
+            <Typography.Text className="login-dashboard__subhead">
+              {t('login.welcomeSubtitle')}
+            </Typography.Text>
+          </div>
+          <div className="login-dashboard__tiles">
+            <div className="login-dashboard__tile">
+              <span className="login-dashboard__tile-label">{t('nav.homeworks')}</span>
+              <span className="login-dashboard__tile-value">128</span>
+            </div>
+            <div className="login-dashboard__tile">
+              <span className="login-dashboard__tile-label">{t('nav.submissions')}</span>
+              <span className="login-dashboard__tile-value">36</span>
+            </div>
+            <div className="login-dashboard__tile">
+              <span className="login-dashboard__tile-label">{t('nav.report')}</span>
+              <span className="login-dashboard__tile-value">94%</span>
+            </div>
+          </div>
+          <div className="login-dashboard__sparkline" />
+        </section>
+
+        <Card className="login-dashboard__card">
+          <Typography.Title level={4} className="login-dashboard__title">
             {t('login.title')}
           </Typography.Title>
           <Form layout="vertical" onFinish={onFinish} requiredMark={false}>
@@ -69,7 +102,7 @@ export const LoginPage = () => {
             </Button>
           </Form>
         </Card>
-      </div>
-    </PageContainer>
+      </main>
+    </div>
   );
 };

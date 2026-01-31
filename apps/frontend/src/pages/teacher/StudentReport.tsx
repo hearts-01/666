@@ -1,21 +1,12 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { EChartsOption } from 'echarts';
-import {
-  Alert,
-  Button,
-  Empty,
-  InputNumber,
-  List,
-  Space,
-  Statistic,
-  Typography,
-  message,
-} from 'antd';
-import { useQuery } from '@tanstack/react-query';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { Alert, Button, Empty, InputNumber, List, Space, Statistic, Typography, message } from 'antd';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fetchStudentReportOverview } from '../../api';
+import { useParams, useSearchParams } from 'react-router-dom';
+import { fetchTeacherStudentReportOverview } from '../../api';
 import { ChartPanel } from '../../components/ChartPanel';
 import { useI18n } from '../../i18n';
 
@@ -29,15 +20,18 @@ type StudentReport = {
   nextSteps: Array<{ text: string; count: number }>;
 };
 
-export const StudentReportPage = () => {
+export const TeacherStudentReportPage = () => {
   const { t } = useI18n();
+  const { studentId } = useParams();
+  const [searchParams] = useSearchParams();
   const [rangeDays, setRangeDays] = useState(7);
   const [exporting, setExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement | null>(null);
 
   const reportQuery = useQuery({
-    queryKey: ['student-report', rangeDays],
-    queryFn: () => fetchStudentReportOverview(rangeDays),
+    queryKey: ['teacher-student-report', studentId, rangeDays],
+    queryFn: () => fetchTeacherStudentReportOverview(studentId || '', rangeDays),
+    enabled: !!studentId,
   });
 
   const report = reportQuery.data as StudentReport | undefined;
@@ -101,7 +95,7 @@ export const StudentReportPage = () => {
 
   const handleExportPdf = async () => {
     if (!reportRef.current) {
-      message.error(t('student.report.exportFailed'));
+      message.error(t('teacher.reports.exportFailed'));
       return;
     }
     try {
@@ -127,21 +121,39 @@ export const StudentReportPage = () => {
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      pdf.save(`student-report-${rangeDays}d.pdf`);
+      pdf.save(`student-${studentId || 'report'}-${rangeDays}d.pdf`);
     } catch {
-      message.error(t('student.report.exportFailed'));
+      message.error(t('teacher.reports.exportFailed'));
     } finally {
       setExporting(false);
     }
   };
+
+  useEffect(() => {
+    if (!report || !reportRef.current) {
+      return;
+    }
+    if (searchParams.get('export') === '1') {
+      const timeout = window.setTimeout(() => {
+        handleExportPdf().then(() => {
+          if (window.opener) {
+            window.close();
+          }
+        });
+      }, 400);
+      return () => window.clearTimeout(timeout);
+    }
+    return undefined;
+  }, [report, searchParams]);
 
   return (
     <PageContainer
       title={t('student.report.title')}
       breadcrumb={{
         items: [
-          { title: t('nav.student'), path: '/student/dashboard' },
-          { title: t('nav.report') },
+          { title: t('nav.teacher'), path: '/teacher/dashboard' },
+          { title: t('nav.reports'), path: '/teacher/reports' },
+          { title: t('student.report.title') },
         ],
       }}
     >
@@ -184,6 +196,15 @@ export const StudentReportPage = () => {
           </Empty>
         ) : (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <ProCard bordered>
+              <Space direction="vertical" size={4}>
+                <Typography.Text type="secondary">
+                  {t('common.student')}: {report.studentName}
+                </Typography.Text>
+                <Typography.Text type="secondary">ID: {report.studentId}</Typography.Text>
+              </Space>
+            </ProCard>
+
             <ProCard bordered title={t('student.report.summary')}>
               {hasSummary ? (
                 <ProCard gutter={16} wrap>
