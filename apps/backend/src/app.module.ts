@@ -12,6 +12,7 @@ import { SubmissionsModule } from './submissions/submissions.module';
 import { RetentionModule } from './retention/retention.module';
 import { ReportsModule } from './reports/reports.module';
 import { AdminModule } from './admin/admin.module';
+import { PublicModule } from './public/public.module';
 
 const buildRedisConnection = (redisUrl: string) => {
   try {
@@ -51,6 +52,7 @@ const buildRedisConnection = (redisUrl: string) => {
     RetentionModule,
     ReportsModule,
     AdminModule,
+    PublicModule,
   ],
 })
 export class AppModule {}

@@ -1,10 +1,11 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { EChartsOption } from 'echarts';
-import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
-import { Descriptions, Empty, Tag, Typography } from 'antd';
-import { useEffect, useMemo, useRef } from 'react';
+import { Descriptions, Tag, Typography } from 'antd';
+import { useMemo } from 'react';
 import { fetchAdminConfig, fetchAdminUsage } from '../../api';
+import { ChartPanel } from '../../components/ChartPanel';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 const chartTextStyle = {
@@ -42,7 +43,7 @@ export const AdminSystemBudgetPage = () => {
       xAxis: {
         type: 'category',
         data: daily.map((item) => item.date),
-        axisLabel: { ...axisLabel, rotate: 30 },
+        axisLabel: { ...axisLabel, rotate: 30, width: 80, overflow: 'truncate' },
         axisLine,
         axisTick: { show: false },
       },
@@ -73,31 +74,6 @@ export const AdminSystemBudgetPage = () => {
     };
   }, [t, usage]);
 
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const instanceRef = useRef<echarts.ECharts | null>(null);
-
-  useEffect(() => {
-    if (!chartRef.current) {
-      return undefined;
-    }
-    const instance = echarts.init(chartRef.current);
-    instanceRef.current = instance;
-    const handleResize = () => instance.resize();
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      instance.dispose();
-      instanceRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!instanceRef.current) {
-      return;
-    }
-    instanceRef.current.setOption(trendOption, true);
-  }, [trendOption]);
-
   return (
     <PageContainer
       title={t('admin.systemBudget.title')}
@@ -126,9 +102,9 @@ export const AdminSystemBudgetPage = () => {
       </ProCard>
       <ProCard bordered title={t('admin.systemBudget.usageTrends')} style={{ marginTop: 16 }}>
         {usage?.daily?.length ? (
-          <div ref={chartRef} style={{ width: '100%', height: 280 }} />
+          <ChartPanel option={trendOption} height={280} />
         ) : (
-          <Empty description={t('admin.systemBudget.empty')} />
+          <SoftEmpty description={t('admin.systemBudget.empty')} />
         )}
       </ProCard>
     </PageContainer>

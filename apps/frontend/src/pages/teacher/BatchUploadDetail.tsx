@@ -1,9 +1,10 @@
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
-import { Alert, Descriptions, Empty, List, Space, Tag, Typography } from 'antd';
+import { Alert, Descriptions, List, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchTeacherBatchUploadDetail } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type BatchSubmissionRow = {
@@ -63,7 +64,7 @@ export const TeacherBatchUploadDetailPage = () => {
       {detailQuery.isLoading && !data ? (
         <ProCard bordered loading />
       ) : !data ? (
-        <Empty description={t('teacher.batchUpload.detailEmpty')} />
+        <SoftEmpty description={t('teacher.batchUpload.detailEmpty')} />
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard bordered title={t('teacher.batchUpload.detailSummary')}>
@@ -122,7 +123,7 @@ export const TeacherBatchUploadDetailPage = () => {
                 )}
               />
             ) : (
-              <Empty description={t('teacher.batchUpload.detailNoSkipped')} />
+              <SoftEmpty description={t('teacher.batchUpload.detailNoSkipped')} />
             )}
           </ProCard>
 

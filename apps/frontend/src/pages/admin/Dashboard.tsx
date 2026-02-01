@@ -1,8 +1,10 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Drawer, Empty, Statistic, Table, Tag, Typography } from 'antd';
+import { Button, Drawer, Space, Table, Tag, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { fetchAdminClassSummaries, fetchAdminMetrics } from '../../api';
+import { AnimatedStatistic } from '../../components/AnimatedStatistic';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const AdminDashboardPage = () => {
@@ -30,7 +32,15 @@ export const AdminDashboardPage = () => {
     >
       <ProCard gutter={16} wrap>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title={t('admin.dashboard.totalUsers')} value={metrics?.users.total ?? 0} />
+          <AnimatedStatistic
+            title={
+              <Space size={6} align="center">
+                <span>{t('admin.dashboard.totalUsers')}</span>
+                <span className="stat-chip">{t('common.realtime')}</span>
+              </Space>
+            }
+            value={metrics?.users.total ?? 0}
+          />
           <Typography.Text type="secondary">
             {`${t('admin.dashboard.students')}: ${metrics?.users.students ?? 0} · ${t(
               'admin.dashboard.teachers',
@@ -40,11 +50,27 @@ export const AdminDashboardPage = () => {
           </Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title={t('admin.dashboard.totalClasses')} value={metrics?.classes.total ?? 0} />
+          <AnimatedStatistic
+            title={
+              <Space size={6} align="center">
+                <span>{t('admin.dashboard.totalClasses')}</span>
+                <span className="stat-chip">{t('common.realtime')}</span>
+              </Space>
+            }
+            value={metrics?.classes.total ?? 0}
+          />
           <Typography.Text type="secondary">{t('admin.dashboard.classHint')}</Typography.Text>
         </ProCard>
         <ProCard bordered colSpan={{ xs: 24, md: 8 }}>
-          <Statistic title={t('admin.dashboard.submissionsToday')} value={metrics?.submissions.today ?? 0} />
+          <AnimatedStatistic
+            title={
+              <Space size={6} align="center">
+                <span>{t('admin.dashboard.submissionsToday')}</span>
+                <span className="stat-chip">{t('common.realtime')}</span>
+              </Space>
+            }
+            value={metrics?.submissions.today ?? 0}
+          />
           <Typography.Text type="secondary">{t('admin.dashboard.submissionHint')}</Typography.Text>
         </ProCard>
         <ProCard
@@ -84,7 +110,7 @@ export const AdminDashboardPage = () => {
               ]}
             />
           ) : (
-            <Empty description={t('admin.dashboard.noClasses')} />
+            <SoftEmpty description={t('admin.dashboard.noClasses')} />
           )}
         </ProCard>
       </ProCard>

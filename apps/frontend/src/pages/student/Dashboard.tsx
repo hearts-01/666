@@ -1,7 +1,9 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Empty, List, Progress, Space, Statistic, Tag, Typography } from 'antd';
+import { Alert, Button, List, Progress, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { fetchStudentHomeworks, fetchStudentReportOverview } from '../../api';
+import { AnimatedStatistic } from '../../components/AnimatedStatistic';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const StudentDashboardPage = () => {
@@ -34,10 +36,46 @@ export const StudentDashboardPage = () => {
   const topErrors = (report?.errorTypes || []).slice(0, 5);
   const nextSteps = (report?.nextSteps || []).slice(0, 5);
   const summaryCards = [
-    { key: 'assignments', title: t('student.dashboard.assignmentsAvailable'), value: homeworkCount },
-    { key: 'submissions', title: t('student.dashboard.weeklySubmissions'), value: summary?.count ?? '--' },
-    { key: 'avg', title: t('student.report.avgScore'), value: summary?.avg ?? '--' },
-    { key: 'max', title: t('student.report.highestScore'), value: summary?.max ?? '--' },
+    {
+      key: 'assignments',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('student.dashboard.assignmentsAvailable')}</span>
+          <span className="stat-chip">{t('common.realtime')}</span>
+        </Space>
+      ),
+      value: homeworkCount,
+    },
+    {
+      key: 'submissions',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('student.dashboard.weeklySubmissions')}</span>
+          <span className="stat-chip">{t('common.last7Days')}</span>
+        </Space>
+      ),
+      value: summary?.count,
+    },
+    {
+      key: 'avg',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('student.report.avgScore')}</span>
+          <span className="stat-chip">{t('common.last7Days')}</span>
+        </Space>
+      ),
+      value: summary?.avg,
+    },
+    {
+      key: 'max',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('student.report.highestScore')}</span>
+          <span className="stat-chip">{t('common.last7Days')}</span>
+        </Space>
+      ),
+      value: summary?.max,
+    },
   ];
 
   const getDueStatus = (dueAt?: Date | null) => {
@@ -83,7 +121,7 @@ export const StudentDashboardPage = () => {
                 colSpan={{ xs: 24, sm: 12, md: 6 }}
                 loading={isLoading && !data}
               >
-                <Statistic title={card.title} value={card.value} />
+                <AnimatedStatistic title={card.title} value={card.value} />
                 {card.key === 'assignments' ? (
                   <Typography.Text type="secondary">{t('student.dashboard.updatedFromList')}</Typography.Text>
                 ) : null}
@@ -114,7 +152,7 @@ export const StudentDashboardPage = () => {
                 )}
               />
             ) : (
-              <Empty description={t('student.dashboard.noErrorInsights')} />
+              <SoftEmpty description={t('student.dashboard.noErrorInsights')} />
             )}
           </ProCard>
           <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('student.report.nextSteps')}>
@@ -131,7 +169,7 @@ export const StudentDashboardPage = () => {
                 )}
               />
             ) : (
-              <Empty description={t('student.report.noNextSteps')} />
+              <SoftEmpty description={t('student.report.noNextSteps')} />
             )}
           </ProCard>
         </ProCard>
@@ -158,7 +196,7 @@ export const StudentDashboardPage = () => {
               }}
             />
           ) : (
-            <Empty description={upcomingDeadlineText} />
+            <SoftEmpty description={upcomingDeadlineText} />
           )}
         </ProCard>
       </Space>

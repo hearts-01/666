@@ -1,15 +1,78 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, Typography, message } from 'antd';
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { authStore, login } from '../api';
+import { CountUpNumber } from '../components/CountUpNumber';
+import { authStore, fetchPublicOverview, login } from '../api';
 import { useI18n } from '../i18n';
 
 export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useI18n();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const { data: overview } = useQuery({
+    queryKey: ['public-overview', 7],
+    queryFn: () => fetchPublicOverview(7),
+    staleTime: 5 * 60 * 1000,
+  });
+  const completionRateValue =
+    typeof overview?.completionRate === 'number'
+      ? Math.round(overview.completionRate * 100)
+      : undefined;
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) {
+      return undefined;
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    let frame = 0;
+    let lastX = 0;
+    let lastY = 0;
+
+    const update = () => {
+      frame = 0;
+      root.style.setProperty('--mouse-x', `${lastX.toFixed(3)}`);
+      root.style.setProperty('--mouse-y', `${lastY.toFixed(3)}`);
+    };
+
+    const handleMove = (event: PointerEvent) => {
+      const rect = root.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+      const y = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
+      lastX = Math.max(-1, Math.min(1, x));
+      lastY = Math.max(-1, Math.min(1, y));
+      if (!frame) {
+        frame = window.requestAnimationFrame(update);
+      }
+    };
+
+    const handleLeave = () => {
+      lastX = 0;
+      lastY = 0;
+      if (!frame) {
+        frame = window.requestAnimationFrame(update);
+      }
+    };
+
+    root.addEventListener('pointermove', handleMove, { passive: true });
+    root.addEventListener('pointerleave', handleLeave);
+
+    return () => {
+      root.removeEventListener('pointermove', handleMove);
+      root.removeEventListener('pointerleave', handleLeave);
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, []);
 
   const onFinish = async (values: { account: string; password: string }) => {
     setLoading(true);
@@ -34,7 +97,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="login-dashboard dashboard-clean">
+    <div ref={rootRef} className="login-dashboard dashboard-clean">
       <header className="login-dashboard__header">
         <div className="login-dashboard__brand">
           <span className="login-dashboard__brand-title">{t('app.title')}</span>
@@ -42,6 +105,30 @@ export const LoginPage = () => {
         </div>
         <LanguageSwitcher />
       </header>
+
+      <div className="login-dashboard__ambient" aria-hidden="true">
+        <div className="login-dashboard__orb login-dashboard__orb--one" />
+        <div className="login-dashboard__orb login-dashboard__orb--two" />
+        <div className="login-dashboard__orb login-dashboard__orb--three" />
+        <div className="login-dashboard__rail login-dashboard__rail--one" />
+        <div className="login-dashboard__rail login-dashboard__rail--two" />
+        <div className="login-dashboard__chip login-dashboard__chip--alpha">
+          <span className="login-dashboard__chip-label">教学周报</span>
+          <span className="login-dashboard__chip-tag">本周</span>
+        </div>
+        <div className="login-dashboard__chip login-dashboard__chip--beta">
+          <span className="login-dashboard__chip-label">学情画像</span>
+          <span className="login-dashboard__chip-tag">实时</span>
+        </div>
+        <div className="login-dashboard__chip login-dashboard__chip--gamma">
+          <span className="login-dashboard__chip-label">作业覆盖率</span>
+          <span className="login-dashboard__chip-tag">更新</span>
+        </div>
+        <div className="login-dashboard__chip login-dashboard__chip--delta">
+          <span className="login-dashboard__chip-label">批改进度</span>
+          <span className="login-dashboard__chip-tag">同步</span>
+        </div>
+      </div>
 
       <main className="login-dashboard__main">
         <section className="login-dashboard__panel">
@@ -54,18 +141,24 @@ export const LoginPage = () => {
             </Typography.Text>
           </div>
           <div className="login-dashboard__tiles">
-            <div className="login-dashboard__tile">
-              <span className="login-dashboard__tile-label">{t('nav.homeworks')}</span>
-              <span className="login-dashboard__tile-value">128</span>
-            </div>
-            <div className="login-dashboard__tile">
-              <span className="login-dashboard__tile-label">{t('nav.submissions')}</span>
-              <span className="login-dashboard__tile-value">36</span>
-            </div>
-            <div className="login-dashboard__tile">
-              <span className="login-dashboard__tile-label">{t('nav.report')}</span>
-              <span className="login-dashboard__tile-value">94%</span>
-            </div>
+              <div className="login-dashboard__tile">
+                <span className="login-dashboard__tile-label">{t('nav.homeworks')}</span>
+                <span className="login-dashboard__tile-value">
+                  <CountUpNumber value={overview?.homeworks} decimals={0} />
+                </span>
+              </div>
+              <div className="login-dashboard__tile">
+                <span className="login-dashboard__tile-label">{t('nav.submissions')}</span>
+                <span className="login-dashboard__tile-value">
+                  <CountUpNumber value={overview?.submissions} decimals={0} />
+                </span>
+              </div>
+              <div className="login-dashboard__tile">
+                <span className="login-dashboard__tile-label">{t('nav.report')}</span>
+                <span className="login-dashboard__tile-value">
+                  <CountUpNumber value={completionRateValue} decimals={0} suffix="%" />
+                </span>
+              </div>
           </div>
           <div className="login-dashboard__sparkline" />
         </section>

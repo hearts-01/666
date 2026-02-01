@@ -1,10 +1,12 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { EChartsOption } from 'echarts';
-import * as echarts from 'echarts';
-import { Alert, Empty, InputNumber, Space, Statistic, Typography } from 'antd';
+import { Alert, InputNumber, Space, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { fetchAdminUsage } from '../../api';
+import { AnimatedStatistic } from '../../components/AnimatedStatistic';
+import { ChartPanel } from '../../components/ChartPanel';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 const chartTextStyle = {
@@ -15,35 +17,6 @@ const axisLabel = { ...chartTextStyle, fontSize: 11 };
 const axisLine = { lineStyle: { color: 'rgba(15, 23, 42, 0.18)' } };
 const splitLine = { lineStyle: { color: 'rgba(15, 23, 42, 0.08)' } };
 const tooltipTextStyle = { color: '#e2e8f0', fontFamily: chartTextStyle.fontFamily };
-
-const ChartPanel = ({ option, height = 260 }: { option: EChartsOption; height?: number }) => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const instanceRef = useRef<echarts.ECharts | null>(null);
-
-  useEffect(() => {
-    if (!containerRef.current) {
-      return undefined;
-    }
-    const instance = echarts.init(containerRef.current);
-    instanceRef.current = instance;
-    const handleResize = () => instance.resize();
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      instance.dispose();
-      instanceRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!instanceRef.current) {
-      return;
-    }
-    instanceRef.current.setOption(option, true);
-  }, [option]);
-
-  return <div ref={containerRef} style={{ width: '100%', height }} />;
-};
 
 export const AdminUsagePage = () => {
   const { t } = useI18n();
@@ -74,7 +47,7 @@ export const AdminUsagePage = () => {
       xAxis: {
         type: 'category',
         data: daily.map((item) => item.date),
-        axisLabel: { ...axisLabel, rotate: 30 },
+        axisLabel: { ...axisLabel, rotate: 30, width: 80, overflow: 'truncate' },
         axisLine,
         axisTick: { show: false },
       },
@@ -126,7 +99,7 @@ export const AdminUsagePage = () => {
       xAxis: {
         type: 'category',
         data: errors.map((item) => item.code),
-        axisLabel: { ...axisLabel, interval: 0, rotate: 20 },
+        axisLabel: { ...axisLabel, interval: 0, rotate: 20, width: 120, overflow: 'truncate' },
         axisLine,
         axisTick: { show: false },
       },
@@ -182,22 +155,54 @@ export const AdminUsagePage = () => {
       </ProCard>
 
       {!data ? (
-        <Empty description={t('admin.usage.empty')} />
+        <SoftEmpty description={t('admin.usage.empty')} />
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard bordered title={t('admin.usage.summary')}>
             <ProCard gutter={16} wrap>
               <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('admin.usage.total')} value={data.summary.total} />
+                <AnimatedStatistic
+                  title={
+                    <Space size={6} align="center">
+                      <span>{t('admin.usage.total')}</span>
+                      <span className="stat-chip">{days === 7 ? t('common.last7Days') : t('common.recent')}</span>
+                    </Space>
+                  }
+                  value={data.summary.total}
+                />
               </ProCard>
               <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('status.done')} value={data.summary.done} />
+                <AnimatedStatistic
+                  title={
+                    <Space size={6} align="center">
+                      <span>{t('status.done')}</span>
+                      <span className="stat-chip">{days === 7 ? t('common.last7Days') : t('common.recent')}</span>
+                    </Space>
+                  }
+                  value={data.summary.done}
+                />
               </ProCard>
               <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('status.failed')} value={data.summary.failed} />
+                <AnimatedStatistic
+                  title={
+                    <Space size={6} align="center">
+                      <span>{t('status.failed')}</span>
+                      <span className="stat-chip">{days === 7 ? t('common.last7Days') : t('common.recent')}</span>
+                    </Space>
+                  }
+                  value={data.summary.failed}
+                />
               </ProCard>
               <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                <Statistic title={t('status.processing')} value={data.summary.processing} />
+                <AnimatedStatistic
+                  title={
+                    <Space size={6} align="center">
+                      <span>{t('status.processing')}</span>
+                      <span className="stat-chip">{t('common.realtime')}</span>
+                    </Space>
+                  }
+                  value={data.summary.processing}
+                />
               </ProCard>
             </ProCard>
           </ProCard>
@@ -207,14 +212,14 @@ export const AdminUsagePage = () => {
               {data.daily.length ? (
                 <ChartPanel option={dailyOption} height={280} />
               ) : (
-                <Empty description={t('admin.usage.empty')} />
+                <SoftEmpty description={t('admin.usage.empty')} />
               )}
             </ProCard>
             <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('admin.usage.errorBreakdown')}>
               {data.errors.length ? (
                 <ChartPanel option={errorOption} />
               ) : (
-                <Empty description={t('admin.usage.noErrors')} />
+                <SoftEmpty description={t('admin.usage.noErrors')} />
               )}
             </ProCard>
           </ProCard>

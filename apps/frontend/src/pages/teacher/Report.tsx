@@ -2,18 +2,7 @@ import { PageContainer, ProCard } from '@ant-design/pro-components';
 import type { EChartsOption } from 'echarts';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import {
-  Alert,
-  Button,
-  Empty,
-  InputNumber,
-  List,
-  Select,
-  Space,
-  Statistic,
-  Typography,
-  message,
-} from 'antd';
+import { Alert, Button, InputNumber, List, Select, Space, Typography, message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -21,7 +10,9 @@ import {
   fetchClasses,
   fetchTeacherClassReportOverview,
 } from '../../api';
+import { AnimatedStatistic } from '../../components/AnimatedStatistic';
 import { ChartPanel } from '../../components/ChartPanel';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type ReportSummary = {
@@ -106,6 +97,7 @@ export const TeacherReportPage = () => {
   const report = reportQuery.data as ClassReport | undefined;
   const hasSummary = report?.summary?.count && report.summary.count > 0;
   const submissionRate = report?.submissionRate ? Number((report.submissionRate * 100).toFixed(1)) : 0;
+  const rangeTag = rangeDays === 7 ? t('common.last7Days') : t('common.recent');
   const distributionOption = useMemo<EChartsOption>(() => {
     const data = report?.distribution || [];
     return {
@@ -292,26 +284,59 @@ export const TeacherReportPage = () => {
 
       <div ref={reportRef}>
         {!selectedClassId ? (
-          <Empty description={t('teacher.reports.selectClassHint')} />
+          <SoftEmpty description={t('teacher.reports.selectClassHint')} />
         ) : reportQuery.isLoading && !report ? (
           <ProCard bordered loading />
         ) : !report ? (
-          <Empty description={t('teacher.reports.noData')} />
+          <SoftEmpty description={t('teacher.reports.noData')} />
         ) : (
           <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <ProCard bordered title={t('teacher.reports.insightsTitle')}>
               <ProCard gutter={16} wrap>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.totalStudents')} value={report.totalStudents} />
+                  <AnimatedStatistic
+                    title={
+                      <Space size={6} align="center">
+                        <span>{t('teacher.reports.totalStudents')}</span>
+                        <span className="stat-chip">{t('common.realtime')}</span>
+                      </Space>
+                    }
+                    value={report.totalStudents}
+                  />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.submittedStudents')} value={report.submittedStudents} />
+                  <AnimatedStatistic
+                    title={
+                      <Space size={6} align="center">
+                        <span>{t('teacher.reports.submittedStudents')}</span>
+                        <span className="stat-chip">{rangeTag}</span>
+                      </Space>
+                    }
+                    value={report.submittedStudents}
+                  />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.pendingStudents')} value={report.pendingStudents} />
+                  <AnimatedStatistic
+                    title={
+                      <Space size={6} align="center">
+                        <span>{t('teacher.reports.pendingStudents')}</span>
+                        <span className="stat-chip">{rangeTag}</span>
+                      </Space>
+                    }
+                    value={report.pendingStudents}
+                  />
                 </ProCard>
                 <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                  <Statistic title={t('teacher.reports.submissionRate')} value={submissionRate} suffix="%" />
+                  <AnimatedStatistic
+                    title={
+                      <Space size={6} align="center">
+                        <span>{t('teacher.reports.submissionRate')}</span>
+                        <span className="stat-chip">{rangeTag}</span>
+                      </Space>
+                    }
+                    value={submissionRate}
+                    suffix="%"
+                  />
                 </ProCard>
               </ProCard>
             </ProCard>
@@ -319,20 +344,52 @@ export const TeacherReportPage = () => {
               {hasSummary ? (
                 <ProCard gutter={16} wrap>
                   <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                    <Statistic title={t('teacher.reports.avgScore')} value={report.summary.avg} />
+                    <AnimatedStatistic
+                      title={
+                        <Space size={6} align="center">
+                          <span>{t('teacher.reports.avgScore')}</span>
+                          <span className="stat-chip">{rangeTag}</span>
+                        </Space>
+                      }
+                      value={report.summary.avg}
+                    />
                   </ProCard>
                   <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                    <Statistic title={t('teacher.reports.highestScore')} value={report.summary.max} />
+                    <AnimatedStatistic
+                      title={
+                        <Space size={6} align="center">
+                          <span>{t('teacher.reports.highestScore')}</span>
+                          <span className="stat-chip">{rangeTag}</span>
+                        </Space>
+                      }
+                      value={report.summary.max}
+                    />
                   </ProCard>
                   <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                    <Statistic title={t('teacher.reports.lowestScore')} value={report.summary.min} />
+                    <AnimatedStatistic
+                      title={
+                        <Space size={6} align="center">
+                          <span>{t('teacher.reports.lowestScore')}</span>
+                          <span className="stat-chip">{rangeTag}</span>
+                        </Space>
+                      }
+                      value={report.summary.min}
+                    />
                   </ProCard>
                   <ProCard bordered colSpan={{ xs: 24, sm: 12, md: 6 }}>
-                    <Statistic title={t('teacher.reports.submissions')} value={report.summary.count} />
+                    <AnimatedStatistic
+                      title={
+                        <Space size={6} align="center">
+                          <span>{t('teacher.reports.submissions')}</span>
+                          <span className="stat-chip">{rangeTag}</span>
+                        </Space>
+                      }
+                      value={report.summary.count}
+                    />
                   </ProCard>
                 </ProCard>
               ) : (
-                <Empty description={t('teacher.reports.noCompleted')} />
+                <SoftEmpty description={t('teacher.reports.noCompleted')} />
               )}
             </ProCard>
 
@@ -341,14 +398,14 @@ export const TeacherReportPage = () => {
                 {report.distribution?.length ? (
                   <ChartPanel option={distributionOption} />
                 ) : (
-                  <Empty description={t('teacher.reports.noDistribution')} />
+                  <SoftEmpty description={t('teacher.reports.noDistribution')} />
                 )}
               </ProCard>
               <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.trend')}>
                 {report.trend?.length ? (
                   <ChartPanel option={trendOption} height={280} />
                 ) : (
-                  <Empty description={t('teacher.reports.noTrend')} />
+                  <SoftEmpty description={t('teacher.reports.noTrend')} />
                 )}
               </ProCard>
             </ProCard>
@@ -370,14 +427,14 @@ export const TeacherReportPage = () => {
                     )}
                   />
                 ) : (
-                  <Empty description={t('teacher.reports.noRanking')} />
+                  <SoftEmpty description={t('teacher.reports.noRanking')} />
                 )}
               </ProCard>
               <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.reports.topErrorTypes')}>
                 {report.errorTypes?.length ? (
                   <ChartPanel option={errorOption} />
                 ) : (
-                  <Empty description={t('teacher.reports.noErrorStats')} />
+                  <SoftEmpty description={t('teacher.reports.noErrorStats')} />
                 )}
               </ProCard>
             </ProCard>

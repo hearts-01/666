@@ -1,5 +1,5 @@
 import { ModalForm, PageContainer, ProCard, ProFormSelect, ProFormTextArea, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, Descriptions, Drawer, Empty, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Descriptions, Drawer, Space, Tag, Typography, message } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import {
@@ -11,6 +11,7 @@ import {
   removeClassStudent,
   updateClassTeachers,
 } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type ClassItem = {
@@ -196,7 +197,7 @@ export const AdminClassesPage = () => {
           search={false}
           pagination={{ pageSize: 8 }}
           options={false}
-          locale={{ emptyText: <Empty description={t('admin.classes.empty')} /> }}
+          locale={{ emptyText: <SoftEmpty description={t('admin.classes.empty')} /> }}
         />
       </ProCard>
 
@@ -284,12 +285,12 @@ export const AdminClassesPage = () => {
                     ],
                   },
                 ]}
-                locale={{ emptyText: <Empty description={t('admin.classes.noStudents')} /> }}
+                locale={{ emptyText: <SoftEmpty description={t('admin.classes.noStudents')} /> }}
               />
             </ProCard>
           </Space>
         ) : (
-          <Empty description={t('admin.classes.selectClass')} />
+          <SoftEmpty description={t('admin.classes.selectClass')} />
         )}
       </Drawer>
     </PageContainer>

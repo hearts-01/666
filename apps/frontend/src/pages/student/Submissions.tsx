@@ -1,11 +1,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, DatePicker, Empty, Input, InputNumber, Select, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, DatePicker, Input, InputNumber, Select, Space, Tag, Typography, message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import type { Dayjs } from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { downloadStudentSubmissionsCsv, fetchStudentSubmissions } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type SubmissionRow = {
@@ -178,11 +179,11 @@ export const StudentSubmissionsPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description={t('student.submissions.empty')}>
+              <SoftEmpty description={t('student.submissions.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
                   {t('student.submissions.emptyHint')}
                 </Typography.Paragraph>
-              </Empty>
+              </SoftEmpty>
             ),
           }}
           toolBarRender={() => [

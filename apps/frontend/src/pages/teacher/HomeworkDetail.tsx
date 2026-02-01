@@ -7,7 +7,6 @@ import {
   DatePicker,
   Descriptions,
   Divider,
-  Empty,
   Input,
   InputNumber,
   List,
@@ -41,6 +40,7 @@ import {
   type TeacherBatchUploadResult,
   type TeacherBatchPreviewResult,
 } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type HomeworkItem = {
@@ -564,11 +564,11 @@ export const TeacherHomeworkDetailPage = () => {
       }}
     >
       {!homework ? (
-        <Empty description={t('teacher.homeworkDetail.unavailable')}>
+        <SoftEmpty description={t('teacher.homeworkDetail.unavailable')}>
           <Button type="primary" onClick={() => navigate('/teacher/homeworks')}>
             {t('common.backToHomeworks')}
           </Button>
-        </Empty>
+        </SoftEmpty>
       ) : (
         <Tabs
           items={[
@@ -628,11 +628,11 @@ export const TeacherHomeworkDetailPage = () => {
                       options={false}
                       locale={{
                         emptyText: (
-                          <Empty description={t('teacher.homeworkDetail.noSubmissions')}>
+                          <SoftEmpty description={t('teacher.homeworkDetail.noSubmissions')}>
                             <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
                               {t('teacher.homeworkDetail.noSubmissionsHint')}
                             </Typography.Paragraph>
-                          </Empty>
+                          </SoftEmpty>
                         ),
                       }}
                       toolBarRender={() => [
@@ -888,7 +888,7 @@ export const TeacherHomeworkDetailPage = () => {
                     {batchesQuery.isLoading ? (
                       <ProCard bordered loading />
                     ) : !batchesQuery.data?.length ? (
-                      <Empty description={t('teacher.batchUpload.historyEmpty')} />
+                      <SoftEmpty description={t('teacher.batchUpload.historyEmpty')} />
                     ) : (
                       <Table
                         rowKey="id"

@@ -402,6 +402,17 @@ export const fetchAdminMetrics = async () => {
   return response.data as AdminMetrics;
 };
 
+export const fetchPublicOverview = async (days = 7) => {
+  const response = await api.get('/public/overview', { params: { days } });
+  return response.data as {
+    days: number;
+    homeworks: number;
+    submissions: number;
+    completionRate: number;
+    updatedAt: string;
+  };
+};
+
 export type AdminUser = {
   id: string;
   name: string;

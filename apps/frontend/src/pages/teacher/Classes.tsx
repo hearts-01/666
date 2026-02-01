@@ -1,9 +1,10 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ModalForm, PageContainer, ProCard, ProFormText, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, Empty, Skeleton, Space, Tag, message } from 'antd';
+import { Alert, Button, Skeleton, Space, Tag, message } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createClass, fetchClasses } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type ClassItem = {
@@ -94,7 +95,7 @@ export const TeacherClassesPage = () => {
             search={false}
             pagination={false}
             options={false}
-            locale={{ emptyText: <Empty description={t('teacher.classes.empty')} /> }}
+            locale={{ emptyText: <SoftEmpty description={t('teacher.classes.empty')} /> }}
             toolBarRender={() => [
               <Space key="toolbar">
                 <ModalForm

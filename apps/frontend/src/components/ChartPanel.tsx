@@ -41,11 +41,7 @@ export const ChartPanel = ({ option, height = 260, className }: ChartPanelProps)
     requestAnimationFrame(() => instanceRef.current?.resize());
   }, [option]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{ width: '100%', height, overflow: 'hidden' }}
-    />
-  );
+  const classes = className ? `chart-panel ${className}` : 'chart-panel';
+
+  return <div ref={containerRef} className={classes} style={{ width: '100%', height, overflow: 'hidden' }} />;
 };

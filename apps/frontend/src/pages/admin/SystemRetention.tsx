@@ -1,8 +1,9 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Button, Descriptions, Empty, Form, InputNumber, Space, Switch, Tag, Typography, message } from 'antd';
+import { Button, Descriptions, Form, InputNumber, Space, Switch, Tag, Typography, message } from 'antd';
 import { useEffect } from 'react';
 import { fetchAdminRetentionStatus, runAdminRetention } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const AdminSystemRetentionPage = () => {
@@ -120,7 +121,7 @@ export const AdminSystemRetentionPage = () => {
             <Descriptions.Item label={t('admin.retention.duration')}>{lastRun.durationMs}ms</Descriptions.Item>
           </Descriptions>
         ) : (
-          <Empty description={t('admin.retention.logsEmpty')} />
+          <SoftEmpty description={t('admin.retention.logsEmpty')} />
         )}
       </ProCard>
 
@@ -141,7 +142,7 @@ export const AdminSystemRetentionPage = () => {
             ))}
           </Space>
         ) : (
-          <Empty description={t('admin.retention.logsEmpty')} />
+          <SoftEmpty description={t('admin.retention.logsEmpty')} />
         )}
       </ProCard>
     </PageContainer>

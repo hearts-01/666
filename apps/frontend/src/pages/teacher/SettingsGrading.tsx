@@ -1,5 +1,6 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Descriptions, Empty, Tag, Typography } from 'antd';
+import { Descriptions, Tag, Typography } from 'antd';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const TeacherSettingsGradingPage = () => {
@@ -33,7 +34,7 @@ export const TeacherSettingsGradingPage = () => {
       </ProCard>
       <ProCard bordered title={t('teacher.settings.advancedTitle')} style={{ marginTop: 16 }}>
         {/* TODO: connect grading configuration API */}
-        <Empty description={t('teacher.settings.advancedEmpty')} />
+        <SoftEmpty description={t('teacher.settings.advancedEmpty')} />
       </ProCard>
     </PageContainer>
   );

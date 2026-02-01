@@ -1,10 +1,11 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, Empty, Input, Select, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Select, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudentHomeworks } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type HomeworkItem = {
@@ -139,11 +140,11 @@ export const StudentHomeworksPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description={t('student.homeworks.empty')}>
+              <SoftEmpty description={t('student.homeworks.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
                   {t('student.homeworks.emptyHint')}
                 </Typography.Paragraph>
-              </Empty>
+              </SoftEmpty>
             ),
           }}
           toolBarRender={() => [

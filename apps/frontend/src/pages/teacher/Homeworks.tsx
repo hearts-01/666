@@ -8,11 +8,12 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { Alert, Button, Empty, Select, Skeleton, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Select, Skeleton, Space, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createHomework, fetchClasses, fetchHomeworksSummaryByClass } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type HomeworkItem = {
@@ -205,11 +206,11 @@ export const TeacherHomeworksPage = () => {
       {classesQuery.isLoading && !classesQuery.data ? (
         <Skeleton active paragraph={{ rows: 4 }} />
       ) : noClasses ? (
-        <Empty description={t('teacher.homeworks.noClasses')}>
+        <SoftEmpty description={t('teacher.homeworks.noClasses')}>
           <Button type="primary" onClick={() => navigate('/teacher/classes')}>
             {t('teacher.homeworks.createClass')}
           </Button>
-        </Empty>
+        </SoftEmpty>
       ) : (
         <ProCard bordered>
           <Space style={{ marginBottom: 16 }} wrap>
@@ -267,7 +268,7 @@ export const TeacherHomeworksPage = () => {
               search={false}
               pagination={false}
               options={false}
-              locale={{ emptyText: <Empty description={t('teacher.homeworks.empty')} /> }}
+              locale={{ emptyText: <SoftEmpty description={t('teacher.homeworks.empty')} /> }}
             />
           )}
         </ProCard>

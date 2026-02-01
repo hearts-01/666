@@ -1,9 +1,10 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Descriptions, Empty, List, Skeleton, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Descriptions, List, Skeleton, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchStudentHomeworks, fetchStudentSubmissions } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const StudentHomeworkDetailPage = () => {
@@ -73,11 +74,11 @@ export const StudentHomeworkDetailPage = () => {
       {isLoading && !data ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !homework ? (
-        <Empty description={t('student.homeworkDetail.notFound')}>
+        <SoftEmpty description={t('student.homeworkDetail.notFound')}>
           <Button type="primary" onClick={() => navigate('/student/homeworks')}>
             {t('common.backToHomeworks')}
           </Button>
-        </Empty>
+        </SoftEmpty>
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard
@@ -146,7 +147,7 @@ export const StudentHomeworkDetailPage = () => {
                 }}
               />
             ) : (
-              <Empty description={t('student.homeworkDetail.noSubmissionHistory')} />
+              <SoftEmpty description={t('student.homeworkDetail.noSubmissionHistory')} />
             )}
           </ProCard>
         </Space>

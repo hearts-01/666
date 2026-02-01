@@ -1,22 +1,10 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import {
-  Alert,
-  Button,
-  Collapse,
-  Descriptions,
-  Empty,
-  List,
-  Space,
-  Switch,
-  Tabs,
-  Tag,
-  Typography,
-  message,
-} from 'antd';
+import { Alert, Button, Collapse, Descriptions, List, Space, Switch, Tabs, Tag, Typography, message } from 'antd';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchSubmission, regradeSubmission } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type GradingResult = {
@@ -103,7 +91,7 @@ export const TeacherSubmissionDetailPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsLowEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsLowEmpty')} />
         ),
       },
       {
@@ -116,7 +104,7 @@ export const TeacherSubmissionDetailPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsMidEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsMidEmpty')} />
         ),
       },
       {
@@ -129,7 +117,7 @@ export const TeacherSubmissionDetailPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsHighEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsHighEmpty')} />
         ),
       },
       {
@@ -148,7 +136,7 @@ export const TeacherSubmissionDetailPage = () => {
             )}
           />
         ) : (
-          <Empty description={t('submission.suggestionsErrorsEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsErrorsEmpty')} />
         ),
       },
     ],
@@ -189,7 +177,7 @@ export const TeacherSubmissionDetailPage = () => {
       {isLoading && !data ? (
         <ProCard bordered loading />
       ) : !data ? (
-        <Empty description={t('submission.noData')} />
+        <SoftEmpty description={t('submission.noData')} />
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard bordered>

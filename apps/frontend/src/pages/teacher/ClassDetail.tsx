@@ -4,7 +4,6 @@ import {
   Alert,
   Button,
   Descriptions,
-  Empty,
   message,
   Skeleton,
   Space,
@@ -21,6 +20,7 @@ import {
   fetchHomeworksByClass,
   importClassStudents,
 } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type StudentRow = {
@@ -156,11 +156,11 @@ export const TeacherClassDetailPage = () => {
       {classesQuery.isLoading && !classesQuery.data ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !classItem ? (
-        <Empty description={t('teacher.classDetail.notFound')}>
+        <SoftEmpty description={t('teacher.classDetail.notFound')}>
           <Button type="primary" onClick={() => navigate('/teacher/classes')}>
             {t('common.backToClasses')}
           </Button>
-        </Empty>
+        </SoftEmpty>
       ) : (
         <Tabs
           items={[
@@ -226,7 +226,7 @@ export const TeacherClassDetailPage = () => {
                       search={false}
                       pagination={{ pageSize: 8 }}
                       options={false}
-                      locale={{ emptyText: <Empty description={t('teacher.classDetail.noStudents')} /> }}
+                      locale={{ emptyText: <SoftEmpty description={t('teacher.classDetail.noStudents')} /> }}
                       toolBarRender={() => [
                         <ModalForm
                           key="import"
@@ -297,7 +297,7 @@ export const TeacherClassDetailPage = () => {
                       search={false}
                       pagination={{ pageSize: 6 }}
                       options={false}
-                      locale={{ emptyText: <Empty description={t('teacher.classDetail.noHomeworks')} /> }}
+                      locale={{ emptyText: <SoftEmpty description={t('teacher.classDetail.noHomeworks')} /> }}
                     />
                   </ProCard>
                 </Space>

@@ -1,24 +1,10 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import {
-  Alert,
-  Button,
-  Collapse,
-  Descriptions,
-  Empty,
-  List,
-  Skeleton,
-  Space,
-  Statistic,
-  Steps,
-  Tabs,
-  Tag,
-  Timeline,
-  Typography,
-} from 'antd';
+import { Alert, Button, Collapse, Descriptions, List, Skeleton, Space, Statistic, Steps, Tabs, Tag, Timeline, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchSubmission } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 type GradingResult = {
@@ -125,7 +111,7 @@ export const SubmissionResultPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsLowEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsLowEmpty')} />
         ),
       },
       {
@@ -138,7 +124,7 @@ export const SubmissionResultPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsMidEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsMidEmpty')} />
         ),
       },
       {
@@ -151,7 +137,7 @@ export const SubmissionResultPage = () => {
             renderItem={(item) => <List.Item>{item}</List.Item>}
           />
         ) : (
-          <Empty description={t('submission.suggestionsHighEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsHighEmpty')} />
         ),
       },
       {
@@ -170,7 +156,7 @@ export const SubmissionResultPage = () => {
             )}
           />
         ) : (
-          <Empty description={t('submission.suggestionsErrorsEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsErrorsEmpty')} />
         ),
       },
       {
@@ -179,7 +165,7 @@ export const SubmissionResultPage = () => {
         children: grading?.summary ? (
           <Typography.Paragraph>{grading.summary}</Typography.Paragraph>
         ) : (
-          <Empty description={t('submission.suggestionsSummaryEmpty')} />
+          <SoftEmpty description={t('submission.suggestionsSummaryEmpty')} />
         ),
       },
     ],
@@ -234,7 +220,7 @@ export const SubmissionResultPage = () => {
       {isLoading && !data ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : !data ? (
-        <Empty description={t('submission.noData')} />
+        <SoftEmpty description={t('submission.noData')} />
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard bordered>

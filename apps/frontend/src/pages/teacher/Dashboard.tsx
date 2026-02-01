@@ -1,8 +1,11 @@
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { Alert, Button, Empty, InputNumber, List, Progress, Select, Space, Statistic, Tag, Typography } from 'antd';
+import { Alert, Button, InputNumber, List, Progress, Select, Space, Tag, Typography } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { fetchClasses, fetchHomeworksSummaryByClass, fetchTeacherClassReportOverview } from '../../api';
+import { AnimatedStatistic } from '../../components/AnimatedStatistic';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const TeacherDashboardPage = () => {
@@ -62,11 +65,48 @@ export const TeacherDashboardPage = () => {
     .slice(0, 4);
 
   const classCount = data?.length ?? 0;
-  const summaryCards = [
-    { key: 'classes', title: t('teacher.dashboard.classes'), value: classCount },
-    { key: 'students', title: t('teacher.reports.totalStudents'), value: report?.totalStudents ?? '--' },
-    { key: 'submissions', title: t('teacher.reports.submissions'), value: summary?.count ?? '--' },
-    { key: 'submissionRate', title: t('teacher.reports.submissionRate'), value: `${submissionRate}%` },
+  const summaryCards: Array<{ key: string; title: ReactNode; value?: number; suffix?: string }> = [
+    {
+      key: 'classes',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('teacher.dashboard.classes')}</span>
+          <span className="stat-chip">{t('common.realtime')}</span>
+        </Space>
+      ),
+      value: classCount,
+    },
+    {
+      key: 'students',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('teacher.reports.totalStudents')}</span>
+          <span className="stat-chip">{t('common.realtime')}</span>
+        </Space>
+      ),
+      value: report?.totalStudents,
+    },
+    {
+      key: 'submissions',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('teacher.reports.submissions')}</span>
+          <span className="stat-chip">{rangeDays === 7 ? t('common.last7Days') : t('common.recent')}</span>
+        </Space>
+      ),
+      value: summary?.count,
+    },
+    {
+      key: 'submissionRate',
+      title: (
+        <Space size={6} align="center">
+          <span>{t('teacher.reports.submissionRate')}</span>
+          <span className="stat-chip">{rangeDays === 7 ? t('common.last7Days') : t('common.recent')}</span>
+        </Space>
+      ),
+      value: submissionRate,
+      suffix: '%',
+    },
   ];
 
   return (
@@ -108,11 +148,11 @@ export const TeacherDashboardPage = () => {
         />
       ) : null}
       {classCount === 0 && !isLoading ? (
-        <Empty description={t('teacher.classes.empty')}>
+        <SoftEmpty description={t('teacher.classes.empty')}>
           <Button type="primary" onClick={() => refetch()}>
             {t('common.retry')}
           </Button>
-        </Empty>
+        </SoftEmpty>
       ) : (
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <ProCard bordered style={{ marginBottom: 4 }}>
@@ -136,7 +176,7 @@ export const TeacherDashboardPage = () => {
             <ProCard gutter={16} wrap>
               {summaryCards.map((card) => (
                 <ProCard bordered key={card.key} colSpan={{ xs: 24, sm: 12, md: 6 }} loading={summaryLoading}>
-                  <Statistic title={card.title} value={card.value} />
+                  <AnimatedStatistic title={card.title} value={card.value} suffix={card.suffix} />
                   {card.key === 'classes' ? (
                     <Typography.Text type="secondary">{t('teacher.dashboard.trackClasses')}</Typography.Text>
                   ) : null}
@@ -168,7 +208,7 @@ export const TeacherDashboardPage = () => {
                   )}
                 />
               ) : (
-                <Empty description={t('teacher.dashboard.noActivity')} />
+                <SoftEmpty description={t('teacher.dashboard.noActivity')} />
               )}
             </ProCard>
             <ProCard bordered colSpan={{ xs: 24, lg: 12 }} title={t('teacher.dashboard.topMistakes')}>
@@ -188,7 +228,7 @@ export const TeacherDashboardPage = () => {
                   )}
                 />
               ) : (
-                <Empty description={t('teacher.dashboard.noInsights')} />
+                <SoftEmpty description={t('teacher.dashboard.noInsights')} />
               )}
             </ProCard>
           </ProCard>
@@ -212,7 +252,7 @@ export const TeacherDashboardPage = () => {
                 )}
               />
             ) : (
-              <Empty description={t('teacher.dashboard.reviewSchedules')} />
+              <SoftEmpty description={t('teacher.dashboard.reviewSchedules')} />
             )}
           </ProCard>
         </Space>

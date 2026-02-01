@@ -1,6 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ModalForm, PageContainer, ProCard, ProFormSelect, ProFormText, ProTable } from '@ant-design/pro-components';
-import { Alert, Button, Empty, Input, Select, Space, Switch, Tag, Typography, message } from 'antd';
+import { Alert, Button, Input, Select, Space, Switch, Tag, Typography, message } from 'antd';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import {
@@ -12,6 +12,7 @@ import {
   updateAdminUser,
   type AdminUser,
 } from '../../api';
+import { SoftEmpty } from '../../components/SoftEmpty';
 import { useI18n } from '../../i18n';
 
 export const AdminUsersPage = () => {
@@ -261,11 +262,11 @@ export const AdminUsersPage = () => {
           options={false}
           locale={{
             emptyText: (
-              <Empty description={t('admin.users.empty')}>
+              <SoftEmpty description={t('admin.users.empty')}>
                 <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
                   {t('admin.users.emptyHint')}
                 </Typography.Paragraph>
-              </Empty>
+              </SoftEmpty>
             ),
           }}
           toolBarRender={() => [
