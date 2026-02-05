@@ -279,7 +279,7 @@ export const TeacherHomeworkDetailPage = () => {
     if (file.type?.startsWith('image/')) {
       return true;
     }
-    return /\.(png|jpe?g|webp)$/i.test(file.name);
+    return /\.(png|jpe?g|webp|tif?f?)$/i.test(file.name);
   };
 
   const handleBatchUpload = async () => {
@@ -721,7 +721,7 @@ export const TeacherHomeworkDetailPage = () => {
                       maxCount={100}
                       disabled={batchMutation.isPending}
                       onChange={({ fileList: newList }) => setFileList(newList.slice(0, 100))}
-                      accept="image/*,.zip"
+                      accept="image/*,.zip,.tif,.tiff"
                     >
                       <p className="ant-upload-drag-icon">
                         <InboxOutlined />

@@ -36,7 +36,7 @@ type BatchSkip = {
   fileKey?: string;
 };
 
-const ALLOWED_IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const ALLOWED_IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.tif', '.tiff']);
 const MAX_BATCH_IMAGES = 100;
 const DEFAULT_ZIP_MAX_BYTES = 104857600;
 const DEFAULT_ZIP_UNCOMPRESSED_BYTES = 314572800;
@@ -1120,6 +1120,9 @@ export class SubmissionsService {
         return 'image/png';
       case '.webp':
         return 'image/webp';
+      case '.tif':
+      case '.tiff':
+        return 'image/tiff';
       case '.jpeg':
       case '.jpg':
       default:

@@ -14,7 +14,9 @@
     "lint": "eslint \"src/**/*.{ts,js}\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "test": "echo \"no tests yet\""
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
@@ -38,6 +40,7 @@
     "class-validator": "^0.14.1",
     "ioredis": "^5.3.2",
     "multer": "^1.4.5-lts.1",
+    "pinyin": "^3.1.0",
     "pdfkit": "^0.17.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -46,6 +49,9 @@
     "unzipper": "^0.12.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@nestjs/cli": "^10.4.0",

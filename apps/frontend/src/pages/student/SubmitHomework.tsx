@@ -113,7 +113,7 @@ export const SubmitHomeworkPage = () => {
               }
               setFileList(newList.slice(0, 3));
             }}
-            accept="image/*"
+            accept="image/*,.tif,.tiff"
           >
             <p className="ant-upload-drag-icon">
               <InboxOutlined />

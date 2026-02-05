@@ -283,8 +283,10 @@ export const AdminConfigPage = () => {
         models: provider.models || [],
       })),
       ocr: {
-        baseUrl: config.ocr.baseUrl,
-        timeoutMs: config.ocr.timeoutMs,
+        apiKey: '',
+        secretKey: '',
+        clearApiKey: false,
+        clearSecretKey: false,
       },
       budget: {
         enabled: config.budget.enabled,
@@ -327,7 +329,12 @@ export const AdminConfigPage = () => {
       headers?: Array<{ key: string; value: string; secret?: boolean }>;
       models?: Array<{ name: string; priceIn?: number; priceOut?: number; isDefault?: boolean }>;
     }>;
-    ocr?: { baseUrl?: string; timeoutMs?: number };
+    ocr?: {
+      apiKey?: string;
+      secretKey?: string;
+      clearApiKey?: boolean;
+      clearSecretKey?: boolean;
+    };
     budget?: { enabled?: boolean; dailyCallLimit?: number; mode?: 'soft' | 'hard' };
   }) => {
     const payload = { ...values };
@@ -356,6 +363,28 @@ export const AdminConfigPage = () => {
         delete next.clearApiKey;
         return next;
       });
+    }
+    if (payload.ocr) {
+      const apiKey = payload.ocr.apiKey?.trim() || '';
+      if (payload.ocr.clearApiKey) {
+        payload.ocr.apiKey = '';
+      } else if (!apiKey) {
+        delete payload.ocr.apiKey;
+      } else {
+        payload.ocr.apiKey = apiKey;
+      }
+
+      const secretKey = payload.ocr.secretKey?.trim() || '';
+      if (payload.ocr.clearSecretKey) {
+        payload.ocr.secretKey = '';
+      } else if (!secretKey) {
+        delete payload.ocr.secretKey;
+      } else {
+        payload.ocr.secretKey = secretKey;
+      }
+
+      delete payload.ocr.clearApiKey;
+      delete payload.ocr.clearSecretKey;
     }
     mutation.mutate(payload);
   };
@@ -629,11 +658,47 @@ export const AdminConfigPage = () => {
           <Divider />
 
           <ProCard bordered title={t('admin.config.section.ocr')} colSpan={24}>
-            <Form.Item label={t('admin.config.ocrBaseUrl')} name={['ocr', 'baseUrl']}>
-              <Input placeholder={t('admin.config.ocrBaseUrlPlaceholder')} />
+            <Form.Item
+              label={t('admin.config.ocrApiKey')}
+              name={['ocr', 'apiKey']}
+              extra={
+                config?.ocr.apiKeySet
+                  ? t('admin.config.apiKeyHintSet')
+                  : t('admin.config.apiKeyHintEmpty')
+              }
+            >
+              <Input.Password
+                placeholder={t('admin.config.ocrApiKeyPlaceholder')}
+                autoComplete="new-password"
+              />
             </Form.Item>
-            <Form.Item label={t('admin.config.ocrTimeout')} name={['ocr', 'timeoutMs']}>
-              <InputNumber min={1000} step={500} style={{ width: '100%' }} />
+            <Form.Item
+              label={t('admin.config.ocrSecretKey')}
+              name={['ocr', 'secretKey']}
+              extra={
+                config?.ocr.secretKeySet
+                  ? t('admin.config.apiKeyHintSet')
+                  : t('admin.config.apiKeyHintEmpty')
+              }
+            >
+              <Input.Password
+                placeholder={t('admin.config.ocrSecretKeyPlaceholder')}
+                autoComplete="new-password"
+              />
+            </Form.Item>
+            <Form.Item
+              label={t('admin.config.clearOcrApiKey')}
+              name={['ocr', 'clearApiKey']}
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
+              label={t('admin.config.clearOcrSecretKey')}
+              name={['ocr', 'clearSecretKey']}
+              valuePropName="checked"
+            >
+              <Switch />
             </Form.Item>
             <Button
               onClick={() => ocrHealthMutation.mutate()}

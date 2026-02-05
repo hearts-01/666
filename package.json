@@ -8,6 +8,9 @@
     "dev:backend": "pnpm --filter backend start:dev",
     "dev:worker": "pnpm --filter backend start:worker:dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:cov": "pnpm --filter backend test:cov",
+    "typecheck": "pnpm --filter backend exec tsc --noEmit && pnpm --filter frontend exec tsc --noEmit"
   }
 }

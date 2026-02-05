@@ -70,7 +70,25 @@ export const TeacherClassDetailPage = () => {
       importClassStudents(classId, { text }),
     onSuccess: async (data) => {
       await queryClient.invalidateQueries({ queryKey: ['class-students', id] });
-      message.success(`${t('teacher.classDetail.importSuccess')} ${data.enrolled}`);
+
+      const { created, existing, failed, enrolled } = data;
+      let messageText = t('teacher.classDetail.importSuccess', { enrolled });
+
+      if (created.length > 0) {
+        messageText += `\n${t('teacher.classDetail.importCreated')}: ${created.length}`;
+      }
+      if (existing.length > 0) {
+        messageText += `\n${t('teacher.classDetail.importExisting')}: ${existing.length}`;
+      }
+      if (failed.length > 0) {
+        messageText += `\n${t('teacher.classDetail.importFailed')}: ${failed.length}`;
+      }
+
+      if (failed.length === 0) {
+        message.success(messageText);
+      } else {
+        message.warning(messageText);
+      }
     },
     onError: () => message.error(t('teacher.classDetail.importFailed')),
   });

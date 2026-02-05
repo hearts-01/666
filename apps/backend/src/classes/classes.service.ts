@@ -85,15 +85,57 @@ export class ClassesService {
   }
 
   private parseStudentText(text: string): StudentInputDto[] {
-    return text
+    const lines = text
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const parts = line.split(/[\t,]/).map((value) => value.trim());
-        return { account: parts[0], name: parts[1] } as StudentInputDto;
-      })
-      .filter((entry) => entry.account && entry.name);
+      .filter(Boolean);
+
+    const result: StudentInputDto[] = [];
+
+    for (const line of lines) {
+      const parts = line.split(/[\t,，\s]+/).filter(Boolean);
+      if (parts.length === 0) continue;
+
+      let account: string | undefined;
+      let name: string | undefined;
+
+      if (parts.length === 1) {
+        name = parts[0];
+        account = this.generateAccountFromName(name);
+      } else if (parts.length === 2) {
+        const [part1, part2] = parts;
+        if (this.looksLikeAccount(part1) && !this.looksLikeAccount(part2)) {
+          account = part1;
+          name = part2;
+        } else if (!this.looksLikeAccount(part1) && this.looksLikeAccount(part2)) {
+          name = part1;
+          account = part2;
+        } else {
+          account = part1;
+          name = part2;
+        }
+      } else {
+        account = parts[0];
+        name = parts.slice(1).join(' ');
+      }
+
+      if (account && name) {
+        result.push({ account: account.trim(), name: name.trim() });
+      }
+    }
+
+    return result;
+  }
+
+  private generateAccountFromName(name: string): string {
+    const pinyin = require('pinyin');
+    const nameWithoutSpaces = name.replace(/\s+/g, '');
+    const pinyinArray = pinyin(nameWithoutSpaces, { style: 'normal' });
+    return pinyinArray.map((item: string[]) => item[0]).join('');
+  }
+
+  private looksLikeAccount(str: string): boolean {
+    return /^[a-zA-Z0-9_]+$/.test(str);
   }
 
   private async ensureClassAccess(classId: string, user: AuthUser) {
@@ -133,29 +175,41 @@ export class ClassesService {
     const defaultPassword = dto.defaultPassword || '123456';
 
     const studentIds: string[] = [];
-    let createdUsers = 0;
+    const result = {
+      total: students.length,
+      created: [] as Array<{ account: string; name: string }>,
+      existing: [] as Array<{ account: string; name: string }>,
+      failed: [] as Array<{ account: string; name: string; error: string }>,
+      enrolled: 0,
+    };
 
     for (const student of students) {
-      const existing = await this.prisma.user.findUnique({
-        where: { account: student.account },
-      });
+      try {
+        const existing = await this.prisma.user.findUnique({
+          where: { account: student.account },
+        });
 
-      if (existing) {
-        studentIds.push(existing.id);
-        continue;
+        if (existing) {
+          studentIds.push(existing.id);
+          result.existing.push({ account: student.account, name: student.name });
+          continue;
+        }
+
+        const passwordHash = await bcrypt.hash(defaultPassword, 10);
+        const created = await this.prisma.user.create({
+          data: {
+            account: student.account,
+            name: student.name,
+            role: Role.STUDENT,
+            passwordHash,
+          },
+        });
+        studentIds.push(created.id);
+        result.created.push({ account: student.account, name: student.name });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        result.failed.push({ account: student.account, name: student.name, error: errorMessage });
       }
-
-      const passwordHash = await bcrypt.hash(defaultPassword, 10);
-      const created = await this.prisma.user.create({
-        data: {
-          account: student.account,
-          name: student.name,
-          role: Role.STUDENT,
-          passwordHash,
-        },
-      });
-      createdUsers += 1;
-      studentIds.push(created.id);
     }
 
     const enrollmentData = studentIds.map((studentId) => ({
@@ -168,10 +222,9 @@ export class ClassesService {
       skipDuplicates: true,
     });
 
-    return {
-      createdUsers,
-      enrolled: enrollments.count,
-    };
+    result.enrolled = enrollments.count;
+
+    return result;
   }
 
   async listStudents(classId: string, user: AuthUser) {

@@ -13,8 +13,8 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "types": ["node"],
+    "strictNullChecks": true,
+    "types": ["node", "jest"],
     "paths": {
       "*": ["src/*"]
     }

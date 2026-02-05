@@ -64,8 +64,8 @@ export type AdminSystemConfig = {
     models?: Array<{ name: string; priceIn?: number; priceOut?: number; isDefault?: boolean }>;
   }>;
   ocr: {
-    baseUrl: string;
-    timeoutMs: number;
+    apiKeySet: boolean;
+    secretKeySet: boolean;
   };
   budget: {
     enabled: boolean;
@@ -234,7 +234,13 @@ export const importClassStudents = async (
   payload: { text?: string; students?: Array<{ account: string; name: string }>; defaultPassword?: string },
 ) => {
   const response = await api.post(`/classes/${classId}/students/import`, payload);
-  return response.data as { createdUsers: number; enrolled: number };
+  return response.data as {
+    total: number;
+    created: Array<{ account: string; name: string }>;
+    existing: Array<{ account: string; name: string }>;
+    failed: Array<{ account: string; name: string; error: string }>;
+    enrolled: number;
+  };
 };
 
 export const updateClassTeachers = async (classId: string, teacherIds: string[]) => {
@@ -501,7 +507,7 @@ export const updateAdminConfig = async (payload: {
     headers?: Array<{ key: string; value: string; secret?: boolean }>;
     models?: Array<{ name: string; priceIn?: number; priceOut?: number; isDefault?: boolean }>;
   }>;
-  ocr?: { baseUrl?: string; timeoutMs?: number };
+  ocr?: { apiKey?: string; secretKey?: string };
   budget?: { enabled?: boolean; dailyCallLimit?: number; mode?: 'soft' | 'hard' };
 }) => {
   const response = await api.put('/admin/config', payload);
